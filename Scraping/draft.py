@@ -1,10 +1,12 @@
-# Podex scraping draft
 
+#--------------------------------------------------------------------
+# Podex - Web scraping
+# Species list
+#--------------------------------------------------------------------
 
 # This code gets the list of all species from wikiaves
 
 # To dos:
-# 1. Add hyperlinks to species
 # 2. Fill family for species that are missing 
 
 # import libraries
@@ -12,15 +14,17 @@ import pandas as pd
 import requests as req
 from bs4 import BeautifulSoup
 
-# Get website
+
+#--------------------------------------------------------------------
+# Get page with all the species
 res = req.get('https://www.wikiaves.com.br/especies.php?t=t')
 
-# Structure site info
-soup = bs4.BeautifulSoup(res.text, 'lxml')
-
-table = soup.find('table')
+# Get table element and structure site info
+table = BeautifulSoup(res.text, 'html.parser').find('table')
 headings = [th.get_text() for th in table.find("tr").find_all("th")]
 
+#--------------------------------------------------------------------
+# Format and make pandas df
 
 # The table is all defined in js code. This loops trough the page a creates a dataframe from it
 
@@ -46,3 +50,8 @@ for row in table.find_all('script')[1:]:
 data = pd.DataFrame.from_records(dt1)
 data.columns = ['code', 'family', 'species', 'name_uft8', 'name', 'sond', 'pic']
 
+# Fill missing family values
+
+
+#--------------------------------------------------------------------
+# Export
