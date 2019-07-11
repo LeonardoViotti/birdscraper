@@ -1,3 +1,3 @@
-# Podex
+# Pokedex
 
 Draft pokedex code
