@@ -1,0 +1,3 @@
+# Podex
+
+Draft pokedex code
