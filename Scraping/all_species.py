@@ -4,7 +4,7 @@
 # Species list
 #--------------------------------------------------------------------
 
-# This code gets the list of all species
+# This code gets the list of all species from site
 
 # Switches
 EXPORT_data = 0
