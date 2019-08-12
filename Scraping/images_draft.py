@@ -12,15 +12,47 @@ from bs4 import BeautifulSoup
 site = 'https://www.wikiaves.com/midias.php?t=s&s=10451'
 
 
+#--------------------------------------------------------------------
+# Get site, and wait for all images to load
+
+# Get site
 driver = webdriver.Chrome()
 driver.get(site)
 
+# Wait for the website to load
 time.sleep(5)
 
+# Scroll down all the way
+#driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-foo = driver.find_element_by_class_name('img-responsive')
-foo = driver.find_element_id('img')
 
+# Get scroll height
+last_height = driver.execute_script("return document.body.scrollHeight")
+
+while True:
+    # Scroll down to bottom
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+    # Wait to load page
+    time.sleep(3)
+
+    # Calculate new scroll height and compare with last scroll height
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    if new_height == last_height:
+        break
+    last_height = new_height
+
+
+
+#--------------------------------------------------------------------
+# Get image elements    
+
+# Find all img tags. All images in the page
+images = driver.find_elements_by_tag_name('img')
+
+
+for image in images:
+    print(image.get_attribute('src'))
 
 # response = requests.get(site.format(point_num))
 
