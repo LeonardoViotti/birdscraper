@@ -7,6 +7,7 @@ import re
 import requests
 import time
 import shutil
+import pandas as pd
 from selenium import webdriver
 #from bs4 import BeautifulSoup
 
@@ -15,7 +16,7 @@ site = 'https://www.wikiaves.com/midias.php?t=s&s=10451'
 #--------------------------------------------------------------------
 # Directories
 
-IMAGES_folder = '/home/lviotti/Dropbox/Work/Pessoal/Pokedex'
+IMAGES_folder = '~/Dropbox/Work/Pessoal/Pokedex/'
 
 
 
@@ -39,7 +40,7 @@ while True:
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     # Wait to load page
-    time.sleep(2)
+    time.sleep(10)
 
     # Calculate new scroll height and compare with last scroll height
     new_height = driver.execute_script("return document.body.scrollHeight")
@@ -54,6 +55,18 @@ while True:
 
 # Find all img tags. All images in the page
 images = driver.find_elements_by_tag_name('img')
+foo = [item.get_attribute('src') for item in images ]
+
+image_urls = []
+for image in images:
+    image_urls.append(image.get_attribute('src'))
+
+urls_df = pd.DataFrame(image_urls)
+
+
+# Backup images list so I don't have to download it again
+urls_df = pd.DataFrame(image_urls)
+urls_df.to_csv(IMAGES_folder + "tuim_temp.csv", encoding='utf-8', index=False)
 
 
 # # Construct list with all the links
