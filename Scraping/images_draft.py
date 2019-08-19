@@ -4,6 +4,7 @@
 #--------------------------------------------------------------------
 
 import os
+import csv
 import re
 import requests
 import time
@@ -15,74 +16,84 @@ from selenium import webdriver
 site = 'https://www.wikiaves.com/midias.php?t=s&s=10451'
 
 #--------------------------------------------------------------------
+# Switches
+
+IMPORT_image_urls = False
+
+#--------------------------------------------------------------------
 # Directories
 
 # Gambiarra do cararlho. Arrumar isso depois.
 IMAGES_folder1 = '~/Dropbox/Work/Pessoal/Pokedex/'
 IMAGES_folder2 = 'home/lviotti/Dropbox/Work/Pessoal/Pokedex'
+IMAGES_folder3 = 'C:/Users/wb519128/Dropbox/Work/Pessoal/Pokedex/'
 
 #--------------------------------------------------------------------
 # Get site, and wait for all images to load
 
-# Get site
-driver = webdriver.Chrome()
-driver.get(site)
+# Since this takes a while to run, mostly because of javascript in the website,
+# this is switch is ment to allow me tu run this code and the one that actually 
+# downloads the images separately. If this has already ran, load a csv with all 
+# urls.
+if IMPORT_image_urls:
 
-# Wait for the website to load
-time.sleep(5)
+    # Get site
+    driver = webdriver.Chrome()
+    driver.get(site)
 
-#### Scroll down all the way. Since it loads images only when scrolling
+    # Wait for the website to load
+    time.sleep(5)
 
-# Get scroll height
-last_height = driver.execute_script("return document.body.scrollHeight")
+    #### Scroll down all the way. Since it loads images only when scrolling
 
-while True:
-    # Scroll down to bottom
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    # Get scroll height
+    last_height = driver.execute_script("return document.body.scrollHeight")
 
-    # Wait to load page
-    time.sleep(10)
+    while True:
+        # Scroll down to bottom
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-    # Calculate new scroll height and compare with last scroll height
-    new_height = driver.execute_script("return document.body.scrollHeight")
-    if new_height == last_height:
-        break
-    last_height = new_height
+        # Wait to load page
+        time.sleep(10)
 
-
-
-#--------------------------------------------------------------------
-# Get image elements    
-
-# Find all img tags. All images in the page
-images = driver.find_elements_by_tag_name('img')
-foo = [item.get_attribute('src') for item in images ]
-
-# Grab only urls to actual images from elements with img tag
-image_urls = []
-for image in images:
-    image_urls.append(image.get_attribute('src'))
-
-# Find links to actual bird images. The ones stored in s3 bucket apparently
-bird_urls = list(filter(lambda x:'s3.amazonaws.' in x, image_urls))
-
-# Just check the other images left out as a check
-other_urls = list(filter(lambda x: not 's3.amazonaws.' in x, image_urls))
+        # Calculate new scroll height and compare with last scroll height
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
 
 
-# Backup images list so I don't have to download it again
-urls_df = pd.DataFrame(bird_urls, columns= ['urls'])
-urls_df.to_csv(IMAGES_folder + "tuim_urls.csv", encoding='utf-8', index=False)
+
+    #--------------------------------------------------------------------
+    # Get image elements    
+
+    # Find all img tags. All images in the page
+    images = driver.find_elements_by_tag_name('img')
+    foo = [item.get_attribute('src') for item in images ]
+
+    # Grab only urls to actual images from elements with img tag
+    image_urls = []
+    for image in images:
+        image_urls.append(image.get_attribute('src'))
+
+    # Find links to actual bird images. The ones stored in s3 bucket apparently
+    bird_urls = list(filter(lambda x:'s3.amazonaws.' in x, image_urls))
+
+    # Just check the other images left out as a check
+    other_urls = list(filter(lambda x: not 's3.amazonaws.' in x, image_urls))
 
 
-# img1 = 'https://s3.amazonaws.com/media.wikiaves.com.br/images/023/320805q_7e0d5d33e421b7bea6a2987f86ef8f29.jpg'
-# img2 = 'https://s3.amazonaws.com/media.wikiaves.com.br/images/193/391632q_313cd15e81a15cd775c62b137884d4df.jpg'
+    # Backup images list so I don't have to download it again
+    urls_df = pd.DataFrame(bird_urls, columns= ['urls'])
+    urls_df.to_csv(IMAGES_folder + "tuim_urls.csv", encoding='utf-8', index=False)
 
-# foo = [img1, img2]
+
+# Load csv with all urls already captured by the code above
+else:
+    bird_urls = pd.read_csv(IMAGES_folder3 + 'tuim_urls.csv')
 
 
 #### Define downloading functions
-
 # Save to file function
 def save_image_to_file(image, dirname, suffix):
     with open('{dirname}img_{suffix}.jpg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
@@ -99,28 +110,7 @@ def download_images(dirname, links):
         save_image_to_file(response, dirname, index)
         del response
 
-# FIX THIS !!!
 
-#os.path.join(os.path.expanduser('~'),IMAGES_folder1,')
-# download_images('/home/lviotti/Desktop', foo)
-#download_images(IMAGES_folder1, bird_urls)
+# Run everything!
+download_images(IMAGES_folder3, bird_urls['urls'])
 
-
-# response = requests.get(site.format(point_num))
-
-# soup = BeautifulSoup(response.text, 'html.parser')
-# img_tags = soup.find_all('img')
-
-# urls = [img['src'] for img in img_tags]
-
-
-# for url in urls:
-#     filename = re.search(r'/([\w_-]+[.](jpg|gif|png))$', url)
-#     with open(filename.group(1), 'wb') as f:
-#         if 'http' not in url:
-#             # sometimes an image source can be relative 
-#             # if it is provide the base url which also happens 
-#             # to be the site variable atm. 
-#             url = '{}{}'.format(site, url)
-#         response = requests.get(url)
-#         f.write(response.content)
