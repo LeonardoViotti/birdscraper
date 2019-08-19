@@ -3,6 +3,7 @@
 # Images DRAFT
 #--------------------------------------------------------------------
 
+import os
 import re
 import requests
 import time
@@ -16,9 +17,9 @@ site = 'https://www.wikiaves.com/midias.php?t=s&s=10451'
 #--------------------------------------------------------------------
 # Directories
 
-IMAGES_folder = '~/Dropbox/Work/Pessoal/Pokedex/'
-
-
+# Gambiarra do cararlho. Arrumar isso depois.
+IMAGES_folder1 = '~/Dropbox/Work/Pessoal/Pokedex/'
+IMAGES_folder2 = 'home/lviotti/Dropbox/Work/Pessoal/Pokedex'
 
 #--------------------------------------------------------------------
 # Get site, and wait for all images to load
@@ -57,22 +58,21 @@ while True:
 images = driver.find_elements_by_tag_name('img')
 foo = [item.get_attribute('src') for item in images ]
 
+# Grab only urls to actual images from elements with img tag
 image_urls = []
 for image in images:
     image_urls.append(image.get_attribute('src'))
 
-urls_df = pd.DataFrame(image_urls)
+# Find links to actual bird images. The ones stored in s3 bucket apparently
+bird_urls = list(filter(lambda x:'s3.amazonaws.' in x, image_urls))
+
+# Just check the other images left out as a check
+other_urls = list(filter(lambda x: not 's3.amazonaws.' in x, image_urls))
 
 
 # Backup images list so I don't have to download it again
-urls_df = pd.DataFrame(image_urls)
-urls_df.to_csv(IMAGES_folder + "tuim_temp.csv", encoding='utf-8', index=False)
-
-
-# # Construct list with all the links
-# image_links = []
-# for image in images:
-#     print(image.get_attribute('src'))
+urls_df = pd.DataFrame(bird_urls, columns= ['urls'])
+urls_df.to_csv(IMAGES_folder + "tuim_urls.csv", encoding='utf-8', index=False)
 
 
 # img1 = 'https://s3.amazonaws.com/media.wikiaves.com.br/images/023/320805q_7e0d5d33e421b7bea6a2987f86ef8f29.jpg'
@@ -85,21 +85,25 @@ urls_df.to_csv(IMAGES_folder + "tuim_temp.csv", encoding='utf-8', index=False)
 
 # Save to file function
 def save_image_to_file(image, dirname, suffix):
-    with open('{dirname}/img_{suffix}.jpg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
+    with open('{dirname}img_{suffix}.jpg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
         shutil.copyfileobj(image.raw, out_file)
+
 
 # Download from link function
 def download_images(dirname, links):
     length = len(links)
     for index, link in enumerate(links):
-        print 'Downloading {0} of {1} images'.format(index + 1, length)
+        print('Downloading {0} of {1} images'.format(index + 1, length))
         url = link
         response = requests.get(url, stream=True)
         save_image_to_file(response, dirname, index)
         del response
 
+# FIX THIS !!!
 
-download_images('/home/lviotti/Desktop', foo)
+#os.path.join(os.path.expanduser('~'),IMAGES_folder1,')
+# download_images('/home/lviotti/Desktop', foo)
+#download_images(IMAGES_folder1, bird_urls)
 
 
 # response = requests.get(site.format(point_num))
