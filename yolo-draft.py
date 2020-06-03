@@ -10,6 +10,8 @@
 import cv2
 import cvlib as cv
 #from darknet import Darknet
+from cvlib.object_detection import draw_bbox
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +46,3 @@ bbox, label, conf = cv.detect_common_objects(im)
 output_image = draw_bbox(im, bbox, label, conf)
 plt.imshow(output_image)
 plt.show()
-
-cv2.imshow('image',im)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
