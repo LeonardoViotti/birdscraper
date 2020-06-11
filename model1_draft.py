@@ -27,13 +27,14 @@
 #-----------------------------------------------------------------#
 #### Settings
 
+# Libaries
 import os
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
 import keras
+import tensorflow as tf
 from keras.layers import Dense,GlobalAveragePooling2D
 from keras.applications import MobileNet
 from keras.preprocessing import image
@@ -41,6 +42,10 @@ from keras.applications.mobilenet import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Model
 from keras.optimizers import Adam
+
+# Set seed
+np.seed(42)
+tf.set_random_seed(42)
 
 #-----------------------------------------------------------------#
 #### File paths
