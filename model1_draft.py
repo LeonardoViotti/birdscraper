@@ -45,7 +45,7 @@ from keras.optimizers import Adam
 
 # Set seed
 np.seed(42)
-tf.set_random_seed(42)
+tf. set_random_seed(42)
 
 #-----------------------------------------------------------------#
 #### File paths
@@ -132,14 +132,21 @@ model.fit_generator(generator=train_generator,
 
 #-----------------------------------------------------------------#
 #### Test predictions 
-# model.predict(new_image).
+# model.predict( ).
+
+image = tf.keras.preprocessing.image.load_img(DATA + 'test_img6.png')
+input_arr = keras.preprocessing.image.img_to_array(image)
+input_arr = np.array([input_arr])  # Convert single image to a batch.
+
+# train_generator.class_indices
+model.predict(input_arr)
 
 
 #-----------------------------------------------------------------#
 #### Save trainned model
 
 
-# model.save("model.h5")
+model.save(DATA + 'model_draft.h5')
 # print("Saved model to disk")
 
 # # load json and create model
