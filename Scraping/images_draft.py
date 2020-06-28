@@ -37,14 +37,19 @@ DATA = BASE_PATH + "Data/"
 # Load data
 
 species = pd.read_csv(BASE_PATH + 'all_species.csv')
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 #--------------------------------------------------------------------
 # Get site, and wait for all images to load
 
 # Since this takes a while to run, mostly because of javascript in the website,
-# this is switch is ment to allow me tu run this code and the one that actually 
+# this is switch is ment to allow me to run this code and the one that actually 
 # downloads the images separately. If this has already ran, load a csv with all 
 # urls.
+
 if IMPORT_image_urls:
 
     # Get site
