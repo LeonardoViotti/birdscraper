@@ -37,8 +37,6 @@ DATA = BASE_PATH + "Data/"
 # Load data
 
 species = pd.read_csv(BASE_PATH + 'all_species.csv')
-'
-
 
 #--------------------------------------------------------------------
 # Get site, and wait for all images to load
