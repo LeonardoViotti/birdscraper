@@ -1,3 +1,4 @@
 # Pokedex
+**(Under development and very early stages)**
 
-Draft pokedex code
+Exploring possiblities to indentify bird species using low res photos.
