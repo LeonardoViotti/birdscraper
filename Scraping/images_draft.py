@@ -13,20 +13,32 @@ import pandas as pd
 from selenium import webdriver
 #from bs4 import BeautifulSoup
 
-site = 'https://www.wikiaves.com/midias.php?t=s&s=10451'
+site = 'https://www.wikiaves.com/midias.php?t=s&s=10001'
 
 #--------------------------------------------------------------------
-# Switches
+# Settings
 
 IMPORT_image_urls = False
+
+# Species code
+species_code = 10001
+site = 'https://www.wikiaves.com/midias.php?t=s&s=' + species_code
+
 
 #--------------------------------------------------------------------
 # Directories
 
-# Gambiarra do cararlho. Arrumar isso depois.
-IMAGES_folder1 = '~/Dropbox/Work/Pessoal/Pokedex/'
-IMAGES_folder2 = 'home/lviotti/Dropbox/Work/Pessoal/Pokedex'
-IMAGES_folder3 = 'C:/Users/wb519128/Dropbox/Work/Pessoal/Pokedex/'
+if os.environ.get('USER') == 'leonardo':
+    BASE_PATH = '/home/leonardo/Dropbox/Work/Pessoal/Pokedex/'
+
+DATA = BASE_PATH + "Data/"
+
+#--------------------------------------------------------------------
+# Load data
+
+species = pd.read_csv(BASE_PATH + 'all_species.csv')
+'
+
 
 #--------------------------------------------------------------------
 # Get site, and wait for all images to load
@@ -112,5 +124,5 @@ def download_images(dirname, links):
 
 
 # Run everything!
-download_images(IMAGES_folder3, bird_urls['urls'])
+download_images(DATA, bird_urls['urls'])
 
