@@ -21,7 +21,7 @@ IMPORT_image_urls = True
 DOWNLOAD_images = True
 
 # Species name (no accentuation)
-species_name = 'tucanucu'
+species_name = 'gralha-de-nuca-azul'
 
 # Base url
 site = 'https://www.wikiaves.com/midias.php?t=s&s='
@@ -82,9 +82,9 @@ if IMPORT_image_urls:
         urls_df = urls_df[~urls_df['urls'].str.contains('recordings')]
         # Print number of urls stored
         n_urls = len(urls_df.index)
-        print('Downloading {0} of {total} images'.format(n_urls, total=n_pictures))
+        print('Loading {0} of {total} images'.format(n_urls, total=n_pictures))
         # Stop if number of images the same as number of pictures 
-        if len(n_urls) >= n_pictures:
+        if n_urls >= n_pictures:
             break
     # Save urls to csv as a backup
     urls_df.to_csv(SCRAPPING + species_name + ".csv", encoding='utf-8', index=False)
@@ -101,13 +101,27 @@ def save_image_to_file(image, dirname, suffix):
 
 
 # Download from link function
-def download_images(dirname, links):
-    length = len(links)
-    for index, link in enumerate(links):
-        print('Downloading {0} of {1} images'.format(index + 1, length))
-        url = link
+# def download_images(dirname, links):
+#     length = len(links)
+#     for index, link in enumerate(links):
+#         print('Downloading {0} of {1} images'.format(index + 1, length))
+#         url = link
+#         response = requests.get(url, stream=True)
+#         save_image_to_file(response, dirname, index)
+#         del response
+
+# Download from link function
+def download_images(dirname, links_df, column = 'urls'):
+    # Downloaded flag
+    urls_df['downloaded'] = 0
+    # Loop through dataframe
+    length = len(links_df.index)
+    for idx in links_df.index:
+        print('Downloading {0} of {1} images'.format(idx + 1, length))
+        url = links_df[column].loc[idx]
+        links_df['downloaded'].loc[idx] = 1
         response = requests.get(url, stream=True)
-        save_image_to_file(response, dirname, index)
+        save_image_to_file(response, dirname, idx)
         del response
 
 # Run downloading
@@ -116,6 +130,9 @@ if DOWNLOAD_images:
     save_dir = DATA + species_name + "/"
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
-    # Download images to dir
-    download_images(save_dir, urls_df['urls'])
+    # Run download function
+    download_images(save_dir, urls_df)
 
+# Save df with dummie for downloaded
+urls_df = pd.read_csv(SCRAPPING + species_name + ".csv")
+        
