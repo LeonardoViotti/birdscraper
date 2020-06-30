@@ -16,10 +16,12 @@ from selenium import webdriver
 #--------------------------------------------------------------------
 # Settings
 
+# Section switches
 IMPORT_image_urls = True
 DOWNLOAD_images = True
+
 # Species name (no accentuation)
-species_name = 'ganso-de-magalhaes'
+species_name = 'tucanucu'
 
 # Base url
 site = 'https://www.wikiaves.com/midias.php?t=s&s='
@@ -78,8 +80,11 @@ if IMPORT_image_urls:
         # Create data frame and remove song recordins images
         urls_df = pd.DataFrame(url_list, columns= ['urls'])
         urls_df = urls_df[~urls_df['urls'].str.contains('recordings')]
+        # Print number of urls stored
+        n_urls = len(urls_df.index)
+        print('Downloading {0} of {total} images'.format(n_urls, total=n_pictures))
         # Stop if number of images the same as number of pictures 
-        if len(urls_df.index) >= n_pictures:
+        if len(n_urls) >= n_pictures:
             break
     # Save urls to csv as a backup
     urls_df.to_csv(SCRAPPING + species_name + ".csv", encoding='utf-8', index=False)
