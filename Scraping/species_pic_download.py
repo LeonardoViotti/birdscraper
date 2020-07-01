@@ -86,6 +86,8 @@ if IMPORT_image_urls:
         # Stop if number of images the same as number of pictures 
         if n_urls >= n_pictures:
             break
+    # Create flag to track which ones were already downloaded
+    urls_df['downloaded'] = 0
     # Save urls to csv as a backup
     urls_df.to_csv(SCRAPPING + species_name + ".csv", encoding='utf-8', index=False)
 else:
@@ -99,29 +101,18 @@ def save_image_to_file(image, dirname, suffix):
     with open('{dirname}img_{suffix}.jpg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
         shutil.copyfileobj(image.raw, out_file)
 
-
-# Download from link function
-# def download_images(dirname, links):
-#     length = len(links)
-#     for index, link in enumerate(links):
-#         print('Downloading {0} of {1} images'.format(index + 1, length))
-#         url = link
-#         response = requests.get(url, stream=True)
-#         save_image_to_file(response, dirname, index)
-#         del response
-
 # Download from link function
 def download_images(dirname, links_df, column = 'urls'):
     # Downloaded flag
-    urls_df['downloaded'] = 0
+    links_df[links_df['downloaded'] == 0]
     # Loop through dataframe
     length = len(links_df.index)
     for idx in links_df.index:
         print('Downloading {0} of {1} images'.format(idx + 1, length))
-        url = links_df[column].loc[idx]
-        links_df['downloaded'].loc[idx] = 1
-        response = requests.get(url, stream=True)
-        save_image_to_file(response, dirname, idx)
+        url = links_df[column].loc[idx] # select which url
+        links_df['downloaded'].loc[idx] = 1 # mark as downloaded
+        response = requests.get(url, stream=True) # Get image
+        save_image_to_file(response, dirname, idx) # save it to folder
         del response
 
 # Run downloading
