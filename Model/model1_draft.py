@@ -56,6 +56,7 @@ tf. set_random_seed(42)
 # be the names of their respective classes.
 
 DATA = 'C:/Users/wb519128/Dropbox/Work/Pessoal/Pokedex/Data/'
+DATA_training = DATA + 'pilot'
 
 #-----------------------------------------------------------------#
 #### Import MobileNet model and process it
@@ -101,7 +102,7 @@ train_datagen=ImageDataGenerator(
     preprocessing_function=preprocess_input) 
 
 train_generator=train_datagen\
-    .flow_from_directory(DATA,
+    .flow_from_directory(DATA_training,
                          target_size=(224,224),
                          color_mode='rgb',
                          batch_size=32,
@@ -134,7 +135,10 @@ model.fit_generator(generator=train_generator,
 #### Test predictions 
 # model.predict( ).
 
-image = tf.keras.preprocessing.image.load_img(DATA + 'test_img6.png')
+# image = tf.keras.preprocessing.image.load_img(DATA + 'principe.jpg')
+# image = tf.keras.preprocessing.image.load_img(DATA + 'test_img4.png')
+image = tf.keras.preprocessing.image.load_img(DATA + 'tucano.jpg')
+
 input_arr = keras.preprocessing.image.img_to_array(image)
 input_arr = np.array([input_arr])  # Convert single image to a batch.
 
@@ -146,7 +150,7 @@ model.predict(input_arr)
 #### Save trainned model
 
 
-model.save(DATA + 'model_draft.h5')
+model.save(DATA + 'model_draft_2.h5')
 # print("Saved model to disk")
 
 # # load json and create model
