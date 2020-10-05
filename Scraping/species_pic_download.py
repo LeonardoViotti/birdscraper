@@ -11,6 +11,7 @@ import time
 import shutil
 import pandas as pd
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 #from bs4 import BeautifulSoup
 
 #--------------------------------------------------------------------
@@ -51,7 +52,7 @@ n_pictures = species[species['name'] == species_name]['pic'].iat[0]
 # Load pictures page and get all images URLS
 
 # Get site
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get(url)
 
 # # List all the images in the page

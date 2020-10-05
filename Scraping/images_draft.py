@@ -10,7 +10,8 @@ import requests
 import time
 import shutil
 import pandas as pd
-from selenium import webdriver
+from selenium import webdriver 
+from webdriver_manager.chrome import ChromeDriverManager #Use to initialize driver in a better way without having chromedriver path mentioned. 
 #from bs4 import BeautifulSoup
 
 site = 'https://www.wikiaves.com/midias.php?t=s&s=10001'
@@ -49,7 +50,7 @@ species = pd.read_csv(BASE_PATH + 'all_species.csv')
 if IMPORT_image_urls:
 
     # Get site
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(ChromeDriverManager().install()) #This installs or finds the new version of chrome driver if not available and links to path automatically. 
     driver.get(site)
 
     # Wait for the website to load
