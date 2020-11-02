@@ -56,3 +56,6 @@ _config.yml
 
 # Markdown
 !/**/*.md
+
+# Keep dockerfiles
+!/**/Dockerfile
