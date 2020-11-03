@@ -28,25 +28,27 @@ RUN FIREFOX_SETUP=firefox-setup.tar.bz2 && \
 
 RUN pip3 install selenium
 RUN pip3 install pyvirtualdisplay
-RUN pip3 install requests pandas numpy
-
+RUN pip3 install requests pandas numpy bs4
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV PYTHONUNBUFFERED=1
 
-ENV APP_HOME /usr/src/app
-WORKDIR /$APP_HOME
+# ENV APP_HOME /usr/src/app
+# WORKDIR /$APP_HOME
 
-COPY . $APP_HOME/
+# COPY . $APP_HOME/
 
-CMD tail -f /dev/null
-# CMD python3 example.py
+# CMD tail -f /dev/null
+
+VOLUME /home/jovyan/work
+WORKDIR /home/jovyan/work
 
 # Ref:
 # https://github.com/dimmg/dockselpy
 
-# docker build -t selenium_docker .
+# docker build -t selenium_docker . 
 # docker run --privileged -p 4000:4000 -d -it selenium_docker 
 
-# docker-compose stop && docker-compose build && docker-compose up -d
+# docker exec -it [CONTAINER ID] python3
+
