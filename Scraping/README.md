@@ -6,5 +6,5 @@ docker-compose up
 Cotainer bash:
 
 ```
-docker exec -it scraping_selenium bash
+docker exec scraping_selenium python3 [script].py
 ```
