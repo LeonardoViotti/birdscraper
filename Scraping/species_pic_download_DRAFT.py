@@ -1,23 +1,38 @@
+#--------------------------------------------------------------------
 # Headless scaping DRAFT
+#--------------------------------------------------------------------
 
+
+#--------------------------------------------------------------------
+# Settings
 
 # TO DO
 #   DOCKER TO FOLDER LINK
 #   CODE REORGANIZATION AND ABSTRACTION 
 
 import os
+import time
 import logging
+import pandas as pd
 
 from pyvirtualdisplay import Display
 from selenium import webdriver
 
-
-
+# Set logger
 logging.getLogger().setLevel(logging.INFO)
 
-BASE_URL = 'https://www.wikiaves.com/midias.php?t=s&s=10001'
+#--------------------------------------------------------------------
+# File paths and URLs
 
 
+DATA = 'C:/Users/wb519128/Dropbox/Work/Pessoal/Pokedex/data-scrapping/'
+
+# Load URL from external file
+with open('url.txt', 'r') as file:
+    BASE_URL = file.read()
+
+#--------------------------------------------------------------------
+# Driver and other scrapping settings
 display = Display(visible=0, size=(800, 600))
 display.start()
 logging.info('Initialized virtual display..')
@@ -73,8 +88,10 @@ while True:
     if n_urls >= n_pictures:
         break
 
+#--------------------------------------------------------------------
+# Dowload pictures
 
 #--------------------------------------------------------------------
 # Close driver        
-browser.quit()
+driver.quit()
 display.stop()
