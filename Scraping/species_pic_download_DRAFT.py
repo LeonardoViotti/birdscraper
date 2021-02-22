@@ -88,6 +88,10 @@ while True:
     if n_urls >= n_pictures:
         break
 
+# Save urls df as a backup
+print('Saving temp.csv')
+urls_df.to_csv('temp.csv')
+
 #--------------------------------------------------------------------
 # Dowload pictures
 
