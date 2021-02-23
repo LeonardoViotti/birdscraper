@@ -2,18 +2,30 @@
 # Headless scaping DRAFT
 #--------------------------------------------------------------------
 
+# TODO
+#   - Symlink to datafolder
+#   - Loop over species
+#   - Add random delays?
+#   - Hide IP?
+#   CODE REORGANIZATION AND ABSTRACTION
+#   DOCKER TO FOLDER LINK
 
 #--------------------------------------------------------------------
 # Settings
 
+DOWNLOAD_images = True
+species_name = 'Ema'
+
 # TO DO
-#   DOCKER TO FOLDER LINK
-#   CODE REORGANIZATION AND ABSTRACTION 
+
+
 
 import os
 import time
 import logging
 import pandas as pd
+import requests
+import shutil
 
 from pyvirtualdisplay import Display
 from selenium import webdriver
@@ -25,7 +37,7 @@ logging.getLogger().setLevel(logging.INFO)
 # File paths and URLs
 
 
-DATA = 'C:/Users/wb519128/Dropbox/Work/Pessoal/Pokedex/data-scrapping/'
+OUT_path = 'outputs/'
 
 # Load URL from external file
 with open('url.txt', 'r') as file:
@@ -81,6 +93,11 @@ while True:
     # Create data frame and remove song recordins images
     urls_df = pd.DataFrame(url_list, columns= ['urls'])
     urls_df = urls_df[~urls_df['urls'].str.contains('recordings')]
+    
+    # Add a dummy if image was downloaded for future reference. For now,
+    # when aquiring the list of urls, no image was downloaded
+    urls_df['downloaded'] = 0
+
     # Print number of urls stored
     n_urls = len(urls_df.index)
     print('Loading {0} of {total} images'.format(n_urls, total=n_pictures))
@@ -90,11 +107,42 @@ while True:
 
 # Save urls df as a backup
 print('Saving temp.csv')
-urls_df.to_csv('temp.csv')
+urls_df.to_csv(OUT_path + 'temp.csv')
 
 #--------------------------------------------------------------------
-# Dowload pictures
+# Downolad pictures
 
+# Function to save image to file
+def save_image_to_file(image, dirname, suffix):
+    with open('{dirname}img_{suffix}.jpg'.format(dirname=dirname, suffix=suffix), 'wb') as out_file:
+        shutil.copyfileobj(image.raw, out_file)
+
+# Function to download from link and save
+def download_images(dirname, links_df, column = 'urls'):
+    # Downloaded flag
+    links_df[links_df['downloaded'] == 0]
+    # Loop through dataframe
+    length = len(links_df.index)
+    for idx in links_df.index:
+        print('Downloading {0} of {1} images'.format(idx + 1, length))
+        url = links_df[column].loc[idx] # select which url
+        links_df['downloaded'].loc[idx] = 1 # mark as downloaded
+        response = requests.get(url, stream=True) # Get image
+        save_image_to_file(response, dirname, idx) # save it to folder
+        del response
+
+# Run downloading
+if DOWNLOAD_images:
+    # Folder settings
+    save_dir = OUT_path + species_name + "/"
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
+    # Run download function
+    download_images(save_dir, urls_df)
+
+# Save df with dummie for downloaded
+# urls_df = pd.read_csv(SCRAPPING + species_name + ".csv")
+        
 #--------------------------------------------------------------------
 # Close driver        
 driver.quit()
