@@ -12,7 +12,10 @@
 #   DOCKER TO FOLDER LINK
 
 import os
+import sys
 import time
+from datetime import date
+
 import logging
 import pandas as pd
 import requests
@@ -40,7 +43,8 @@ class BirdCrawler():
     
     def __init__(self,
                  base_url,
-                 species_csv_path):
+                 species_csv_path,
+                 data_path = 'data/'):
         """
         Parameters
         ----------
@@ -51,17 +55,19 @@ class BirdCrawler():
         """
         
         self.base_url = base_url        
-        self.spc_csv = pd.read_csv(species_csv_path)
+        self.spc_df = pd.read_csv(species_csv_path)
+        self.data_path = data_path
         
         # Set up logging
-        # logging.basicConfig(filename='app.log', 
-        #                     filemode='w', 
-        #                     format='%(name)s - %(levelname)s - %(message)s')
-        # logging.warning('This will get logged to a file')
-        # logging.getLogger().addHandler(logging.StreamHandler())
-        logging.getLogger().setLevel(logging.INFO)
-        logging.info('Crawler started')
-    
+        today = date.today().strftime("%d-%m-%Y")
+        logging.basicConfig(filename='logs/crawler-' + today + '.log', 
+                            filemode='w', 
+                            format='%(asctime)s - %(levelname)s - %(message)s',
+                            level = logging.DEBUG)
+        # Add handlder to also print on terminal
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
+
     def start_driver(self):
         # Driver and other scrapping settings
         self.display = Display(visible=0, size=(800, 600))
@@ -86,12 +92,24 @@ class BirdCrawler():
         logging.info('Accessed %s ..', self.base_url)
         logging.info('Page title: %s', self.driver.title)
     
-    def load_all_pics(self, species_code):
+    def load_all_pics(self, species_code, save = True):
         
-        # species_code = 10001
+        # Set species page
         self.current_page = self.base_url + str(species_code)
         
+        # Get page
         self.driver.get(self.current_page)
+        logging.info('Accessed %s ..', self.base_url)
+        
+        # Set current values for reference
+        self.current_code = species_code
+        self.current_species = self.spc_df[crawl.spc_df['code'] == species_code]['name'].get(0)
+        logging.info('Loading pictures for %s', self.current_species)
+
+        # Make sure dir to store results exists
+        save_dir = os.path.join(crawl.data_path + self.current_species)
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
         
         # Function to store url attribute of each image into list
         def get_urls(img_list):
@@ -108,6 +126,7 @@ class BirdCrawler():
         
         # Scroll down until at least the number of pictures in the sheet are loaded
         # and store all image URLs
+        logging.info('Scrowlling down page')
         while True:
             # Scroll down to bottom
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -130,8 +149,14 @@ class BirdCrawler():
             # Stop if number of images the same as number of pictures 
             if n_urls >= n_pictures:
                 break
+        logging.info('Page loaded with %s pictures', n_pictures)
+
         # Store urls df into attribute
         self.urls_df = urls_df
+        
+        # Save csv with species urls
+        if save:
+            self.urls_df.to_csv(os.path.join(save_dir, 'urls.df'))
     
     def download_images(dirname, links_df, column = 'urls'):
         pass
@@ -148,8 +173,8 @@ with open('url.txt', 'r') as file:
 
 crawl = BirdCrawler(BASE_URL, 'Data/all_species.csv')
 
-crawl.start_driver()
-# # crawl.get_base_url()
-crawl.load_all_pics(10001)
+# crawl.start_driver()
+# # # crawl.get_base_url()
+# crawl.load_all_pics(10001)
 
-crawl.stop_driver()
+# crawl.stop_driver()
