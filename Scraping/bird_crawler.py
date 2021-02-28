@@ -224,16 +224,19 @@ class BirdCrawler():
         self.display.stop()
         
 
-#-----------------------------------------------
-# Load URL from external file
-with open('url.txt', 'r') as file:
-    BASE_URL = file.read()
 
-crawl = BirdCrawler(BASE_URL, 'data/all_species.csv')
+#--------------------------------------------------------------------------------
+# Run BirdCrawler
 
-crawl.start_driver()
-crawl.get_base_url()
-crawl.load_all_pics(10002, limit =10)
+if __name__ == "__main__":
+    with open('url.txt', 'r') as file:
+        BASE_URL = file.read()
 
-crawl.download_images()
-crawl.stop_driver()
+    crawl = BirdCrawler(BASE_URL, 'data/all_species.csv')
+
+    crawl.start_driver()
+    # crawl.get_base_url()
+    crawl.load_all_pics(10002, limit =10)
+
+    crawl.download_images()
+    crawl.stop_driver()
