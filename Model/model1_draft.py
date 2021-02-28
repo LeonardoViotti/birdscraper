@@ -99,7 +99,8 @@ for layer in model.layers[20:]:
 
 # Pre-process images to be inputed in the network
 train_datagen=ImageDataGenerator(
-    preprocessing_function=preprocess_input) 
+    preprocessing_function=preprocess_input,
+    validation_split = 0.3) 
 
 train_generator=train_datagen\
     .flow_from_directory(DATA_training,
@@ -124,7 +125,7 @@ model.compile(optimizer='Adam',
 step_size_train=train_generator.n//train_generator.batch_size
 model.fit_generator(generator=train_generator,
                     steps_per_epoch=step_size_train,
-                    epochs=5)
+                    epochs=1)
 
 
 #-----------------------------------------------------------------#
@@ -137,7 +138,7 @@ model.fit_generator(generator=train_generator,
 
 # image = tf.keras.preprocessing.image.load_img(DATA + 'principe.jpg')
 # image = tf.keras.preprocessing.image.load_img(DATA + 'test_img4.png')
-image = tf.keras.preprocessing.image.load_img(DATA + 'tucano.jpg')
+image = tf.keras.preprocessing.image.load_img(DATA + 'principe.jpg')
 
 input_arr = keras.preprocessing.image.img_to_array(image)
 input_arr = np.array([input_arr])  # Convert single image to a batch.

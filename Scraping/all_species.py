@@ -7,7 +7,7 @@
 # This code gets the list of all species from site
 
 # Switches
-EXPORT_data = 0
+EXPORT_data = 1
 
 # import libraries
 import pandas as pd
@@ -79,4 +79,4 @@ for i in missing_index:
 #--------------------------------------------------------------------
 # Export
 if EXPORT_data:
-    data.to_csv("/home/leonardo/GitHub/pokedex/Data/all_species.csv", encoding='utf-8', index=False)
+    data.to_csv("Data/all_species.csv", encoding='utf-8', index=False)

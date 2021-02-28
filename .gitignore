@@ -52,7 +52,7 @@ _config.yml
 !/**/*.sh
 
 # Plain text
-!/**/*.txt
+#!/**/*.txt
 
 # Markdown
 !/**/*.md
