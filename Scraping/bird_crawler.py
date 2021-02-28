@@ -1,8 +1,3 @@
-
-# CSV for all species
-# CSV for all pictures of each specie
-
-
 # TODO
 #   - Symlink to datafolder
 #   - Loop over species
@@ -11,6 +6,7 @@
 #   CODE REORGANIZATION AND ABSTRACTION
 #   DOCKER TO FOLDER LINK
 
+#--------------------------------------------------------------------------------
 import os
 import sys
 import time
@@ -24,6 +20,19 @@ import shutil
 from pyvirtualdisplay import Display
 from selenium import webdriver
 
+#--------------------------------------------------------------------------------
+# Set up logging
+today = date.today().strftime("%d-%m-%Y")
+logging.basicConfig(filename='logs/crawler-' + today + '.log', 
+                    filemode='w', 
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    # level = logging.DEBUG,
+                    level = logging.INFO)
+# Add handlder to also print on terminal
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
+
+#--------------------------------------------------------------------------------
 class BirdCrawler():
     """
     This class creates a (gecko) webdriver to navigate and scrape a target webpage.
@@ -57,17 +66,6 @@ class BirdCrawler():
         self.base_url = base_url        
         self.spc_df = pd.read_csv(species_csv_path)
         self.data_path = data_path
-        
-        # Set up logging
-        today = date.today().strftime("%d-%m-%Y")
-        logging.basicConfig(filename='logs/crawler-' + today + '.log', 
-                            filemode='w', 
-                            format='%(asctime)s - %(levelname)s - %(message)s',
-                            # level = logging.DEBUG,
-                            level = logging.INFO)
-        # Add handlder to also print on terminal
-        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-        logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
     
     def start_driver(self):
         """
@@ -173,7 +171,7 @@ class BirdCrawler():
         if save:
             self.urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
     
-    def download_images(self):
+    def download_images(self, replace_urls_csv = True):
         """
         Downloads images from a DataFrame of URLs and saves a CSV
         with a record of which URLs where downloaded
@@ -193,11 +191,11 @@ class BirdCrawler():
                 shutil.copyfileobj(image.raw, out_file)
         
         # Downloaded flag
-        urls_df[urls_df['downloaded'] == 0]
+        to_download = urls_df[urls_df['downloaded'] == 0].index
         
         # Loop through dataframe
-        length = len(urls_df.index)
-        for idx in urls_df.index:
+        length = len(to_download) + 1
+        for idx in to_download:
             print('Downloading {0} of {1} images'.format(idx + 1, length))
             
             # Select which url to downlaod
@@ -213,7 +211,10 @@ class BirdCrawler():
             urls_df['downloaded'].loc[idx] = 1
             
             del response
-        return urls_df
+        
+        # Save csv with species urls
+        if replace_urls_csv:
+            urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
     
     
     def stop_driver(self):
@@ -226,17 +227,17 @@ class BirdCrawler():
 
 
 #--------------------------------------------------------------------------------
-# Run BirdCrawler
+# Run BirdCrawler!
 
 if __name__ == "__main__":
     with open('url.txt', 'r') as file:
         BASE_URL = file.read()
-
+    
     crawl = BirdCrawler(BASE_URL, 'data/all_species.csv')
-
+    
     crawl.start_driver()
     # crawl.get_base_url()
-    crawl.load_all_pics(10002, limit =10)
-
+    crawl.load_all_pics(10003, limit = 10)
+    
     crawl.download_images()
     crawl.stop_driver()
