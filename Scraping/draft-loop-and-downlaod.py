@@ -12,7 +12,7 @@ else:
     log_df['downloaded_pics'] = 0
 
 
-n = 30
+n = 3
 # codes_list = [10001]
 codes_list = None
 
@@ -34,13 +34,16 @@ else:
 
 # Restrict the number of pages done this session
 codes = codes[0:n]
+codes = [11913, 11116, 11581] 
 
 
-for url in codes:
-    print(url)
-
-
-
+# code = 10005
+for code in codes:
+    # Print for which species it is running!
+    print(code)
+    crawl.load_all_pics(code, limit = 10)
+    crawl.download_images()
+    log_df.loc[log_df['code'] == code, 'downloaded_pics'] = crawl.current_urls_df['downloaded'].sum()
 
 # After session save log csv
 # log_df.to_csv('log_df.csv', index = False)
