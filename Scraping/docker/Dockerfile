@@ -5,9 +5,9 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
     libnspr4 libnss3 lsb-release xdg-utils libxss1 libdbus-glib-1-2 \
     curl unzip wget \
-    xvfb --fix-missing
-
-# install geckodriver and firefox
+    python3-setuptools \
+    build-essential libssl-dev libffi-dev \
+    xvfb --fix-missing 
 
 RUN GECKODRIVER_VERSION=`curl https://github.com/mozilla/geckodriver/releases/latest | grep -Po 'v[0-9]+.[0-9]+.[0-9]+'` && \
     wget https://github.com/mozilla/geckodriver/releases/download/$GECKODRIVER_VERSION/geckodriver-$GECKODRIVER_VERSION-linux64.tar.gz && \
@@ -29,6 +29,10 @@ RUN FIREFOX_SETUP=firefox-setup.tar.bz2 && \
 RUN pip3 install selenium
 RUN pip3 install pyvirtualdisplay
 RUN pip3 install requests pandas numpy bs4
+
+RUN pip3 install cryptography==3.3.2
+RUN pip3 install setuptools-rust
+RUN pip3 install http-request-randomizer
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
