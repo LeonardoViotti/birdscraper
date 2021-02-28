@@ -16,6 +16,8 @@ import logging
 import pandas as pd
 import requests
 import shutil
+import random
+
 
 from pyvirtualdisplay import Display
 from selenium import webdriver
@@ -144,7 +146,8 @@ class BirdCrawler():
             # Scroll down to bottom
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             # Wait to load page
-            time.sleep(2)
+            # time.sleep(2)
+            time.sleep(random.uniform(2, 2.5))
             # Compute new image list
             images = self.driver.find_elements_by_tag_name('img')
             url_list = get_urls(images)
