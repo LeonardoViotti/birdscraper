@@ -168,11 +168,11 @@ class BirdCrawler():
         logging.info('Page loaded with %s pictures', str(n_pictures))
         
         # Store urls df into attribute
-        self.urls_df = urls_df
+        self.current_urls_df = urls_df
         
         # Save csv with species urls
         if save:
-            self.urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
+            self.current_urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
     
     def download_images(self, replace_urls_csv = True):
         """
@@ -185,7 +185,7 @@ class BirdCrawler():
         urls_df : padas.DataFrame with a str 'urls' column
         """
         dirname = self.current_save_dir
-        urls_df = self.urls_df
+        urls_df = self.current_urls_df
         
         
         # Set saving function
@@ -226,6 +226,9 @@ class BirdCrawler():
         """
         self.driver.quit()
         self.display.stop()
+    
+    def loop_load_and_download(self):
+        pass
         
 
 
@@ -235,12 +238,12 @@ class BirdCrawler():
 if __name__ == "__main__":
     with open('url.txt', 'r') as file:
         BASE_URL = file.read()
-    
+        
     crawl = BirdCrawler(BASE_URL, 'data/all_species.csv')
     
     crawl.start_driver()
     # crawl.get_base_url()
-    crawl.load_all_pics(10003, limit = 10)
+    crawl.load_all_pics(10005, limit = 10)
     
     crawl.download_images()
     crawl.stop_driver()
