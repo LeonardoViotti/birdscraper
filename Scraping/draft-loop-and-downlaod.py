@@ -1,49 +1,54 @@
-load_log_df = False
+# TODO
+# - Shuffle species
+# - Do something when pictures end
 
-if load_log_df:
-    log_df = pd.read_csv('log_df')
-# Take original species data set as a new log_df
-else:
-    # Create a logging data_frame
-    log_df = crawl.spc_df
-    log_df = log_df[['code', 'name', 'pic']]
+# def request_n_download(self, species_code):
+species_code = '10004'
+
+max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == int(species_code)].item()
+
+#-----------------------------
+
+# Create directory to save pictures and data
+crawl.current_save_dir = os.path.join(crawl.save_dir, str(species_code))
+if not os.path.exists(crawl.current_save_dir):
+    os.mkdir(crawl.current_save_dir)
+
+# Create empty df
+df_s = pd.DataFrame(columns = ['id', 'local', 'idMunicipio', 'coms', 'likes', 'vis', 'grande', 'link', 'downloaded', 'filename'])
+
+page = 1
+# Keep track of how many pictures where downloaded for file names and printing
+pic_start_idx = 0 
+
+# Loop until all pictures are downloaded
+# while page < 5:
+while len(df_si) < max_pics:
+    print('Sending request for page {0}...'.format(page))
+
+    # Request pic URLs and process it
+    res = crawl.http_request(species_code, page)
+    df_si = crawl.process_request(res)
     
-    # Add column that has number of pictures already downloaded. At the start zero
-    log_df['downloaded_pics'] = 0
-
-
-n = 3
-# codes_list = [10001]
-codes_list = None
-
-# If a list isn't provided choose a random sample that hasn't yet been scraped
-if codes_list is None:
-    # Filter only species that haven't yet been scraped yet
-    codes = log_df[log_df['downloaded_pics'] == 0]['code'].unique()
+    # Download pictures and replace df with anotated version
+    df_si_results = crawl.download_images(crawl.current_save_dir, df_si, max_pics, pic_start_idx)
     
-    # Randomly select species code to scrape
-    def scrambled(orig):
-        dest = orig[:]
-        random.shuffle(dest)
-        return dest
-    codes = scrambled(codes)
-else:
-    codes = codes_list
+    # Create all records df
+    df_s = df_s.append(df_si_results)
+    
+    # Add filename to df
+    
+    # Loop parameters
+    pic_start_idx = pic_start_idx + len(df_si)
+    page = page + 1
+    
+    # Wait a random interval before sentind new request
+    sleep(round(random.uniform(.3, 3),3))
 
 
 
-# Restrict the number of pages done this session
-codes = codes[0:n]
-codes = [11913, 11116, 11581] 
+import random
+from time import sleep
 
+randint(2,5)
 
-# code = 10005
-for code in codes:
-    # Print for which species it is running!
-    print(code)
-    crawl.load_all_pics(code, limit = 10)
-    crawl.download_images()
-    log_df.loc[log_df['code'] == code, 'downloaded_pics'] = crawl.current_urls_df['downloaded'].sum()
-
-# After session save log csv
-# log_df.to_csv('log_df.csv', index = False)
