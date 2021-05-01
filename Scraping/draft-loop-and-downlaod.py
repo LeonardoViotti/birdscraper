@@ -1,9 +1,13 @@
+import random
+from time import sleep
+
+
 # TODO
 # - Shuffle species
 # - Do something when pictures end
 
 # def request_n_download(self, species_code):
-species_code = '10004'
+species_code = '10005'
 
 max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == int(species_code)].item()
 
@@ -23,13 +27,19 @@ pic_start_idx = 0
 
 # Loop until all pictures are downloaded
 # while page < 5:
-while len(df_si) < max_pics:
+while len(df_s) < max_pics:
     print('Sending request for page {0}...'.format(page))
-
+    
     # Request pic URLs and process it
     res = crawl.http_request(species_code, page)
     df_si = crawl.process_request(res)
     
+    if df_si is None:
+        print('Page {0} is empty! Stopping...'.format(page))
+        break
+    else:
+        print('Page {0} URLs loaded'.format(page))
+        
     # Download pictures and replace df with anotated version
     df_si_results = crawl.download_images(crawl.current_save_dir, df_si, max_pics, pic_start_idx)
     
@@ -46,9 +56,5 @@ while len(df_si) < max_pics:
     sleep(round(random.uniform(.3, 3),3))
 
 
-
-import random
-from time import sleep
-
-randint(2,5)
+len(df_si) < max_pics
 
