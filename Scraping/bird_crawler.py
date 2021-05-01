@@ -1,5 +1,4 @@
 # TODO
-#   - Symlink to datafolder
 #   - Loop over species
 #   - Add random delays?
 #   - Hide IP?
@@ -15,12 +14,9 @@ from datetime import date
 import logging
 import pandas as pd
 import requests
+import json
 import shutil
 import random
-
-
-from pyvirtualdisplay import Display
-from selenium import webdriver
 
 #--------------------------------------------------------------------------------
 # Set up logging
@@ -37,13 +33,6 @@ logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
 #--------------------------------------------------------------------------------
 class BirdCrawler():
     """
-    This class creates a (gecko) webdriver to navigate and scrape a target webpage.
-    It takes as inputs a target url and a csv file containing bird species codes, that 
-    can be conbined with base url to access each species page.
-    
-    For each bird species it provides methods to scrow-down until the end of the page
-    to load all avaialbel picture tumbnails, record each picture url and download them 
-    all. 
     
     Attributes
     ----------
@@ -53,130 +42,69 @@ class BirdCrawler():
     """
     
     def __init__(self,
-                 base_url,
+                 request_base_url,
                  species_csv_path,
-                 data_path = 'data/'):
+                 data_path = '../data/scraping/'):
         """
         Parameters
         ----------
-        base_url : A string containing a URL that can be cocatenated with species code
-        to load a sepecies page 
+        request_base_url : A string containing an http request URL that can be formated with params for species code
+        and page number.
         
-        species_csv_path : Path to csv file containg species codes and number of pics
+        species_csv_path : Path to csv file containg all species codes and number of pics
         """
         
-        self.base_url = base_url        
+        self.request_base_url = request_base_url        
         self.spc_df = pd.read_csv(species_csv_path)
         self.data_path = data_path
-    
-    def start_driver(self):
-        """
-        Start headless gecko driver.
-        """
-        # Driver and other scrapping settings
-        self.display = Display(visible=0, size=(800, 600))
-        self.display.start()
-        logging.info('Initialized virtual display..')
-        
-        firefox_profile = webdriver.FirefoxProfile()
-        firefox_profile.set_preference('browser.download.folderList', 2)
-        firefox_profile.set_preference('browser.download.manager.showWhenStarting', False)
-        firefox_profile.set_preference('browser.download.dir', os.getcwd())
-        firefox_profile.set_preference('browser.helperApps.neverAsk.saveToDisk', 'text/csv')
-        
-        logging.info('Prepared firefox profile..')
-        
-        self.driver = webdriver.Firefox(firefox_profile=firefox_profile)
-        logging.info('Initialized firefox browser..')
-        
-        # return self.driver
-    
-    def get_base_url(self):
-        self.driver.get(self.base_url)
-        logging.info('Accessed %s ..', self.base_url)
-        logging.info('Page title: %s', self.driver.title)
-    
-    def load_all_pics(self, species_code, save = True, limit = None):
-        """
-        Load species page, scrowdown until all the pictures are loaded,
-        and get all picture urls
-        """
-        
-        # Slice data for that species line
-        df = self.spc_df[self.spc_df['code'] == species_code]
-        
-        # Set species page
-        self.current_page = self.base_url + str(species_code)
-        
-        # Get page
-        self.driver.get(self.current_page)
-        logging.info('Accessed %s ..', self.base_url)
-        
-        # Set current values for reference
-        self.current_code = species_code
-        self.current_species = df['name'].item()
-        logging.info('Loading pictures for %s', self.current_species)
         
         # Make sure dir to store results exists
-        self.current_save_dir = os.path.join(crawl.data_path + self.current_species)
-        if not os.path.exists(self.current_save_dir):
-            os.mkdir(self.current_save_dir)
-        
-        # Function to store url attribute of each image into list
-        def get_urls(img_list):
-            image_urls = []
-            for image in img_list:
-                url = image.get_attribute('src')
-                # Filter only bird pictures out of all the images in the page
-                if 's3.amazonaws.' in url:
-                    image_urls.append(url)
-            return image_urls
-        
-        # Set a limit to the scrowling process by either reaching the total number of
-        # pictures of that species or if an explicit limit is passed to the method
-        if limit is None:
-            n_pictures = df['pic'].item()
-        else:
-            n_pictures = limit
-        
-        # Scroll down until at least the number of pictures in the sheet are loaded
-        # and store all image URLs
-        logging.info('Scrowlling down page')
-        while True:
-            # Scroll down to bottom
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            # Wait to load page
-            # time.sleep(2)
-            time.sleep(random.uniform(2, 2.5))
-            # Compute new image list
-            images = self.driver.find_elements_by_tag_name('img')
-            url_list = get_urls(images)
-            # Create data frame and remove song recordins images
-            urls_df = pd.DataFrame(url_list, columns= ['urls'])
-            urls_df = urls_df[~urls_df['urls'].str.contains('recordings')]
-            
-            # Add a dummy if image was downloaded for future reference. For now,
-            # when aquiring the list of urls, no image was downloaded
-            urls_df['downloaded'] = 0
-            
-            # Print number of urls stored
-            n_urls = len(urls_df.index)
-            print('Loading {0} of {total} images'.format(n_urls, total=n_pictures))
-            # Stop if number of images the same as number of pictures 
-            if n_urls >= n_pictures:
-                break
-        logging.info('Page loaded with %s pictures', str(n_pictures))
-        
-        # Store urls df into attribute
-        self.current_urls_df = urls_df
-        
-        # Save csv with species urls
-        if save:
-            self.current_urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
+        self.save_dir = os.path.join(self.data_path + 'pictures')
+        if not os.path.exists(self.save_dir):
+            os.mkdir(self.save_dir)
     
-    def download_images(self, replace_urls_csv = True):
+    def http_request(self, code, page):
         """
-        Downloads images from a DataFrame of URLs and saves a CSV
+        Sends an hhtp request to get a JSON response that cotains pic links
+        """
+        request_str = self.request_base_url
+        
+        request_str_ij = request_str.format(code = code, page = page)
+        res_ij = requests.get(request_str_ij,  verify=False)
+        logging.info('Accessed %s ..', request_str_ij)
+        return res_ij
+    
+    def process_request(self, request):
+        """
+        Processes received JSON to create a pic URL data frame
+        """
+        json_data = json.loads(request.text)
+        # Pretty JSON for printiting
+        # json_formatted_str = json.dumps(json_data, indent=2)
+        # # print(json_formatted_str)
+        
+        # Convert to df
+        df = pd.DataFrame.from_dict(json_data['registros']['itens']).T
+        # Keep fewer columns
+        df = df[['id', 'local', 'idMunicipio', 'coms', 'likes', 'vis', 'grande', 'link']]
+        # Process links to remove character 
+        df['link'] = df['link'].str.replace('#','')
+        # Add downloaded flag
+        df['downloaded'] = 0
+        
+        # Num fotos
+        # int(json_data['registros']['total'])
+        return df
+    
+    # def download_images(self, species_df, replace_urls_csv = True):
+    #     # Create directory to save pictures and data
+    #     self.current_save_dir = os.path.join(self.save_dir, str(species_code))
+    #     if not os.path.exists(self.current_save_dir):
+    #         os.mkdir(self.current_save_dir)
+    
+    def download_images(self, dirname, urls_df, max_pictures, start_index = 0):
+        """
+        Downloads images from a DataFrame of URLs and returns a CSV
         with a record of which URLs where downloaded
         
         Parameters
@@ -184,9 +112,6 @@ class BirdCrawler():
         dirname : path to save images
         urls_df : padas.DataFrame with a str 'urls' column
         """
-        dirname = self.current_save_dir
-        urls_df = self.current_urls_df
-        
         
         # Set saving function
         def save_image_to_file(image, dirname, suffix):
@@ -197,53 +122,104 @@ class BirdCrawler():
         to_download = urls_df[urls_df['downloaded'] == 0].index
         
         # Loop through dataframe
-        length = len(to_download) + 1
+        length = len(to_download)
         for idx in to_download:
-            print('Downloading {0} of {1} images'.format(idx + 1, length))
-            
+            # Set index in relation to all the pictures
+            global_index = start_index + int(idx)
+            print('Downloading {0} of {1} images'.format(global_index, max_pictures))
             # Select which url to downlaod
-            url = urls_df['urls'].loc[idx] 
-            
+            url = urls_df['link'].loc[idx] 
             # Get image
             response = requests.get(url, stream=True)
-            
             # Save image to folder
-            save_image_to_file(response, dirname, idx) # save it to folder
-            
+            save_image_to_file(response, dirname, global_index) # save it to folder
             # Mark that url as already downloaded
             urls_df['downloaded'].loc[idx] = 1
             
             del response
+        # Retrun records of what was downloaded
+        return urls_df
         
-        # Save csv with species urls
-        if replace_urls_csv:
-            urls_df.to_csv(os.path.join(self.current_save_dir, 'urls.csv'))
+        # # Save csv with species urls
+        # if replace_urls_csv:
+        #     urls_df.to_csv(os.path.join(dirname, 'species_df.csv'))
     
-    
-    def stop_driver(self):
+    def load_n_download_images(self, species_code, replace_urls_csv = True):
         """
-        Kill gecko driver and display
+        Downloads images from a DataFrame of URLs and saves a CSV
+        with a record of which URLs where downloaded
+        
+        Parameters
+        ----------
         """
-        self.driver.quit()
-        self.display.stop()
-    
+        
+        # Get total number of pics for species
+        max_pics = self.spc_df['pic'][self.spc_df['code'] == int(species_code)].item()
+        
+        # While df length < total number of pictures keep sending requests
+        # page = 1
+        # res = self.http_request(species_code, page)
+        # df_ij = self.process_request(res)
+        
+        # return df_ij
+        
     def loop_load_and_download(self):
         pass
-        
+
 
 
 #--------------------------------------------------------------------------------
 # Run BirdCrawler!
 
-if __name__ == "__main__":
-    with open('url.txt', 'r') as file:
-        BASE_URL = file.read()
-        
-    crawl = BirdCrawler(BASE_URL, 'data/all_species.csv')
-    
-    crawl.start_driver()
-    # crawl.get_base_url()
-    crawl.load_all_pics(10005, limit = 10)
-    
-    crawl.download_images()
-    crawl.stop_driver()
+# if __name__ == "__main__":
+with open('../data/scraping/get_request.txt', 'r') as file:
+    REQUEST_URL = file.read()
+
+
+crawl = BirdCrawler(REQUEST_URL, '../data/scraping/all_species.csv')
+
+
+# page = 1
+# species_code = '10002'
+
+# max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == species_code].item()
+
+
+# res = crawl.http_request(species_code, page)
+# df_si = crawl.process_request(res)
+
+# # Create directory to save pictures and data
+# crawl.current_save_dir = os.path.join(crawl.save_dir, str(species_code))
+# if not os.path.exists(crawl.current_save_dir):
+#     os.mkdir(crawl.current_save_dir)
+
+# crawl.download_images(dirname, df_si)
+
+
+
+
+# crawl.load_all_pics(10005, limit = 10)
+# crawl.download_images()
+
+# foo = crawl.load_n_download_images(str(10001))
+# res = crawl.http_request('10001', '15')
+# crawl.process_request(res).to_clipboard()
+
+# species_code = 10001
+# max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == species_code].item()
+# str('1000')
+
+# foo.to_clipboard()
+
+# page = 1
+# while page < 5:
+#     page = page + 1
+#     print(page)
+
+# # def species_loop(self):
+# page = 1
+# df_s = pd.DataFrame(columns = ['id', 'local', 'idMunicipio', 'coms', 'likes', 'vis', 'grande', 'link'])
+# res_si  = crawl.http_request(species_code, page)
+# df_si = crawl.process_request(res)
+
+# df_s = df_s.append(df_si)
