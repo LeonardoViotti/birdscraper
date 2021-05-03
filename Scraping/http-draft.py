@@ -20,6 +20,10 @@ with open('get_request.txt', 'r') as file:
 request_str_ij = request_str.format(code = '10001', page = '4')
 res_ij = requests.get(request_str_ij,  verify=False)
 
+def get_pic_links(request_base_url, code, page):
+    request_str_ij = request_base_url.format(code = '10001', page = '4')
+    res_ij = requests.get(request_str_ij,  verify=False)
+    return res_ij
 
 def process_request(request):
     json_data = json.loads(request.text)
@@ -36,7 +40,6 @@ def process_request(request):
     
     # Num fotos
     int(json_data['registros']['total'])
-    
     return df
 
 process_request(res_ij)
