@@ -59,9 +59,6 @@ class BirdCrawler():
         self.request_base_url = request_base_url        
         self.data_path = data_path
         
-        # Keep track of what has been downloaded
-        crawl.spc_df['downloaded'] = 0
-        
         # Make sure dir to store results exists
         self.save_dir = os.path.join(self.data_path + 'pictures')
         if not os.path.exists(self.save_dir):
@@ -226,27 +223,9 @@ class BirdCrawler():
         
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
-    
-    def load_n_download_images(self, species_code, replace_urls_csv = True):
-        """
-        Downloads images from a DataFrame of URLs and saves a CSV
-        with a record of which URLs where downloaded
         
-        Parameters
-        ----------
-        """
-        
-        # Get total number of pics for species
-        max_pics = self.spc_df['pic'][self.spc_df['code'] == int(species_code)].item()
-        
-        # While df length < total number of pictures keep sending requests
-        # page = 1
-        # res = self.http_request(species_code, page)
-        # df_ij = self.process_request(res)
-        
-        # return df_ij
-        
-    def loop_load_and_download(self):
+    def download_species_images(self, codes, overwrite = False):
+        # print('Species already downloaded. Skipping {0}...'.format(species_code))
         pass
 
 
@@ -262,52 +241,4 @@ with open('../data/scraping/get_request.txt', 'r') as file:
 # crawl = BirdCrawler(REQUEST_URL, create_progress_df = True)
 crawl = BirdCrawler(REQUEST_URL)
 
-crawl.request_n_download(10004, replace = True)
-
-
-# crawl.request_n_download(10005, True)
-
-# page = 1
-# species_code = '10002'
-
-# max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == species_code].item()
-
-
-# res = crawl.http_request(species_code, page)
-# df_si = crawl.process_request(res)
-
-# # Create directory to save pictures and data
-# crawl.current_save_dir = os.path.join(crawl.save_dir, str(species_code))
-# if not os.path.exists(crawl.current_save_dir):
-#     os.mkdir(crawl.current_save_dir)
-
-# crawl.download_images(dirname, df_si)
-
-
-
-
-# crawl.load_all_pics(10005, limit = 10)
-# crawl.download_images()
-
-# foo = crawl.load_n_download_images(str(10001))
-# res = crawl.http_request('10001', '15')
-# crawl.process_request(res).to_clipboard()
-
-# species_code = 10001
-# max_pics = crawl.spc_df['pic'][crawl.spc_df['code'] == species_code].item()
-# str('1000')
-
-# foo.to_clipboard()
-
-# page = 1
-# while page < 5:
-#     page = page + 1
-#     print(page)
-
-# # def species_loop(self):
-# page = 1
-# df_s = pd.DataFrame(columns = ['id', 'local', 'idMunicipio', 'coms', 'likes', 'vis', 'grande', 'link'])
-# res_si  = crawl.http_request(species_code, page)
-# df_si = crawl.process_request(res)
-
-# df_s = df_s.append(df_si)
+# crawl.request_n_download(10004, replace = True)
