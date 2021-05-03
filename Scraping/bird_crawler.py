@@ -224,9 +224,14 @@ class BirdCrawler():
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
         
-    def download_species_images(self, codes, overwrite = False):
-        # print('Species already downloaded. Skipping {0}...'.format(species_code))
-        pass
+    def download_species_images(self, codes_list, overwrite = False):
+        print('Downloading species:')
+        print(*codes_list, sep='\n')
+        for code in codes_list:
+            species_name = self.spc_df['name'].loc[self.spc_df['code'] == code].item()
+            print('Trying to download pictures for {} code {}...'.format(species_name.capitalize(), code))
+            self.request_n_download(code, replace = overwrite)
+
 
 
 
