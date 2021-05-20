@@ -18,7 +18,11 @@ from bs4 import BeautifulSoup
 
 #--------------------------------------------------------------------
 # Get page with all the species
-res = req.get('https://www.wikiaves.com.br/especies.php?t=t')
+
+with open('../data/scraping/all_species_table_url.txt', 'r') as file:
+    url = file.read()
+
+res = req.get(url)
 
 # Get table element and structure site info
 table = BeautifulSoup(res.text, 'html.parser').find('table')
