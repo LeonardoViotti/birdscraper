@@ -1,9 +1,7 @@
 # TODO
 #   - Loop over species
-#   - Add random delays?
-#   - Hide IP?
-#   CODE REORGANIZATION AND ABSTRACTION
-#   DOCKER TO FOLDER LINK
+#   - List as CLI argument
+#   - Organize lodading csv and saving progress
 
 #--------------------------------------------------------------------------------
 import os
@@ -46,14 +44,14 @@ class BirdCrawler():
                  request_base_url,
                  create_progress_df = False,
                  data_path = '../data/scraping/',
-                 species_csv_path = '../data/scraping/all_species.csv'):
+                 species_org_csv_path = '../data/scraping/all_species.csv'):
         """
         Parameters
         ----------
         request_base_url : A string containing an http request URL that can be formated with params for species code
         and page number.
         
-        species_csv_path : Path to csv file containg all species codes and number of pics
+        species_org_csv_path : Path to csv file containg all species codes and number of pics created by all_species.py
         """
         
         self.request_base_url = request_base_url        
@@ -65,14 +63,14 @@ class BirdCrawler():
             os.mkdir(self.save_dir)
         
         if create_progress_df:
-            self.spc_df = pd.read_csv(species_csv_path)
+            self.species_df = pd.read_csv(species_org_csv_path)
             self.create_progress_df()
         else:
-            self.spc_df = pd.read_csv(os.path.join(self.save_dir, 'all_species_progress.csv'))
+            self.species_df = pd.read_csv(os.path.join(self.save_dir, 'all_species_progress.csv'))
         
     def create_progress_df(self):
-        self.spc_df['downloaded'] = 0
-        self.spc_df.to_csv(os.path.join(self.save_dir, 'all_species_progress.csv'), index = False)
+        self.species_df['downloaded'] = 0
+        self.species_df.to_csv(os.path.join(self.save_dir, 'all_species_progress.csv'), index = False)
     
     def http_request(self, code, page):
         """
@@ -177,7 +175,7 @@ class BirdCrawler():
             # Loop parameters
             
             # Set a limit based on species df
-            max_pics = self.spc_df['pic'][self.spc_df['code'] == int(species_code)].item()
+            max_pics = self.species_df['pic'][self.species_df['code'] == int(species_code)].item()
             
             # Create empty df
             df_s = pd.DataFrame(columns = ['id', 'local', 'idMunicipio', 'coms', 'likes', 'vis', 'grande', 'link', 'downloaded', 'filename'])
@@ -216,10 +214,10 @@ class BirdCrawler():
                 sleep(round(random.uniform(.3, 3),3))
             
             # Anotate all species DF to keep track of what as been downloaded
-            self.spc_df['downloaded'].loc[self.spc_df['code'] == species_code] = len(df_s)
+            self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
             
             # Replace existing file with anotaded version
-            self.spc_df.to_csv(os.path.join(self.save_dir, 'all_species_progress.csv'), index = False)
+            self.species_df.to_csv(os.path.join(self.save_dir, 'all_species_progress.csv'), index = False)
         
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
@@ -228,7 +226,7 @@ class BirdCrawler():
         print('Downloading species:')
         print(*codes_list, sep='\n')
         for code in codes_list:
-            species_name = self.spc_df['name'].loc[self.spc_df['code'] == code].item()
+            species_name = self.species_df['name'].loc[self.species_df['code'] == code].item()
             print('Trying to download pictures for {} code {}...'.format(species_name.capitalize(), code))
             self.request_n_download(code, replace = overwrite)
 
@@ -246,4 +244,7 @@ with open('../data/scraping/get_request.txt', 'r') as file:
 # crawl = BirdCrawler(REQUEST_URL, create_progress_df = True)
 crawl = BirdCrawler(REQUEST_URL)
 
-# crawl.request_n_download(10004, replace = True)
+# crawl.request_n_download(10004, replace = False)
+crawl.download_species_images([10002, 10004])
+
+crawl.species_df
