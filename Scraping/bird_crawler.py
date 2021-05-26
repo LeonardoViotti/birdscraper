@@ -281,5 +281,7 @@ if __name__ == "__main__":
     print('Crawler started!')
     
     # Download pictures of codes provided:
-    
-    # crawl.download_species_images(codes_list=args.codes, overwrite=False)
+    if args.codes is None:
+        print('No --codes argument provided. Nothing is downloaded.')
+    else:
+        crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
