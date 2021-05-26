@@ -228,17 +228,16 @@ class BirdCrawler():
     def download_species_images(self, codes_list, overwrite = False):
         print('Downloading species:')
         print(*codes_list, sep='\n')
+        # Try species by species
         for code in codes_list:
             try:
                 species_name = self.species_df['name'].loc[self.species_df['code'] == code].item()
             except:
-                print("Species code {} doesn't exist in the species data".format(code))
-                sys.exit(1) # Break the code!
-            print('Trying to download pictures for {} code {}...'.format(species_name.capitalize(), code))
-            self.request_n_download(code, replace = overwrite)
-
-
-
+                print("Species code {} doesn't exist in the species data!".format(code))
+                continue
+            else:
+                print('Trying to download pictures for {} code {}...'.format(species_name.capitalize(), code))
+                self.request_n_download(code, replace = overwrite)
 
 #--------------------------------------------------------------------------------
 # Run BirdCrawler!
@@ -256,14 +255,6 @@ def parse_args():
     parser.add_argument("--overwrite", action="store_true", default=False, 
                         help='Overwrite pictures downloaded with new ones.')
     return parser.parse_args()
-
-
-# with open(os.path.join("../data/scraping/get_request.txt"), 'r') as file:
-#     REQUEST_URL = file.read()
-
-# crawl = BirdCrawler(REQUEST_URL)
-
-# crawl.species_df
 
 if __name__ == "__main__":
     args = parse_args()
@@ -285,3 +276,11 @@ if __name__ == "__main__":
         print('No --codes argument provided. Nothing is downloaded.')
     else:
         crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
+
+
+# with open(os.path.join("../data/scraping/get_request.txt"), 'r') as file:
+#     REQUEST_URL = file.read()
+
+# crawl = BirdCrawler(REQUEST_URL)
+
+# crawl.species_df
