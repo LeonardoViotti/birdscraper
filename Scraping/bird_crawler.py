@@ -255,20 +255,20 @@ def parse_args():
     return parser.parse_args()
 
 
-# if __name__ == "__main__":
-#     args = parse_args()
-#     try:
-#         with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
-#             REQUEST_URL = file.read()
-#     except IOError:    #This means that the file does not exist (or some other IOError)
-#         print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
+if __name__ == "__main__":
+    args = parse_args()
+    try:
+        with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
+            REQUEST_URL = file.read()
+    except IOError:    #This means that the file does not exist (or some other IOError)
+        print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
     
-#     # Instantiate crawler
-#     crawl = BirdCrawler(REQUEST_URL,
-#                         create_progress_df = args.create_progress_df,
-#                         data_path= args.data_path,
-#                         species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'))
-#     print('Crawler started!')
+    # Instantiate crawler
+    crawl = BirdCrawler(REQUEST_URL,
+                        create_progress_df = args.create_progress_df,
+                        data_path= args.data_path,
+                        species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'))
+    print('Crawler started!')
     
-#     for i in args.codes:
-#         print(i)
+    for i in args.codes:
+        print(i)
