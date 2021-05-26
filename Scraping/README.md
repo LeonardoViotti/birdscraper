@@ -1,10 +1,10 @@
-Run container:
+To run crawler script:
 
 ```
-docker-compose up
+python video_processing.py [--data_path]
+                           [--codes]
+                           [--urls_path]
+                           [--overwrite]
 ```
-Cotainer bash:
 
-```
-docker exec scraping_selenium python3 [script].py
-```
+
