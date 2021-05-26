@@ -2,7 +2,8 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=str)
+    parser.add_argument("data-path", type=str)
+    # parser.add_argument("--path", type=str)
     parser.add_argument('--codes', nargs='+', type=int)
     return parser.parse_args()
 

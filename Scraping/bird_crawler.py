@@ -16,6 +16,7 @@ import json
 import shutil
 import random
 from time import sleep
+import argparse
 
 #--------------------------------------------------------------------------------
 # Set up logging
@@ -217,7 +218,9 @@ class BirdCrawler():
             self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
             
             # Replace existing file with anotaded version
-            self.species_df.to_csv(os.path.join(self.save_dir, 'all_species_progress.csv'), index = False)
+            progress_df_path = os.path.join(self.save_dir, 'all_species_progress.csv')
+            self.species_df.to_csv(progress_df_path, index = False)
+            print('Updating {}',format(progress_df_path))
         
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
@@ -236,15 +239,36 @@ class BirdCrawler():
 #--------------------------------------------------------------------------------
 # Run BirdCrawler!
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data_path", type=str, default="../data/scraping/",
+                        help = 'Path where the downloaded data should be stored.')
+    parser.add_argument("--urls_path", type=str, default="../data/scraping/",
+                        help = 'Path containing get_request.txt')
+    parser.add_argument("--create_progress_df", action="store_true", default=False, 
+                        help='Creates a copy of species df that counts downloaded pictures.')
+    parser.add_argument('--codes', nargs='+', type=int, required=True, 
+                        help = 'Numeric codes to request pictures.')
+
+
+    # parser.add_argument('--codes', nargs='+', type=int, required=True)
+    return parser.parse_args()
+
+
 # if __name__ == "__main__":
-with open('../data/scraping/get_request.txt', 'r') as file:
-    REQUEST_URL = file.read()
-
-
-# crawl = BirdCrawler(REQUEST_URL, create_progress_df = True)
-crawl = BirdCrawler(REQUEST_URL)
-
-# crawl.request_n_download(10004, replace = False)
-crawl.download_species_images([10002, 10004])
-
-crawl.species_df
+#     args = parse_args()
+#     try:
+#         with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
+#             REQUEST_URL = file.read()
+#     except IOError:    #This means that the file does not exist (or some other IOError)
+#         print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
+    
+#     # Instantiate crawler
+#     crawl = BirdCrawler(REQUEST_URL,
+#                         create_progress_df = args.create_progress_df,
+#                         data_path= args.data_path,
+#                         species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'))
+#     print('Crawler started!')
+    
+#     for i in args.codes:
+#         print(i)
