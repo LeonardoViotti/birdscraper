@@ -21,14 +21,14 @@ import argparse
 #--------------------------------------------------------------------------------
 # Set up logging
 today = date.today().strftime("%d-%m-%Y")
-logging.basicConfig(filename='logs/crawler-' + today + '.log', 
-                    filemode='w', 
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    # level = logging.DEBUG,
-                    level = logging.INFO)
-# Add handlder to also print on terminal
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
+#logging.basicConfig(filename='logs/crawler-' + today + '.log', 
+#                    filemode='w', 
+#                    format='%(asctime)s - %(levelname)s - %(message)s',
+#                    # level = logging.DEBUG,
+#                    level = logging.INFO)
+## Add handlder to also print on terminal
+#logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+#logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
 
 #--------------------------------------------------------------------------------
 class BirdCrawler():
