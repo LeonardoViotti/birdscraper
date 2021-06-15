@@ -261,7 +261,7 @@ if __name__ == "__main__":
     try:
         with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
             REQUEST_URL = file.read()
-    except IOError:    #This means that the file does not exist (or some other IOError)
+    except SystemExit:
         print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
     
     # Instantiate crawler
