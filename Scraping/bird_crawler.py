@@ -12,6 +12,8 @@ from datetime import date
 import logging
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import json
 import shutil
 import random
@@ -78,10 +80,18 @@ class BirdCrawler():
         Sends an hhtp request to get a JSON response that cotains pic links
         """
         request_str = self.request_base_url
-        
         request_str_ij = request_str.format(code = code, page = page)
-        res_ij = requests.get(request_str_ij,  verify=False)
-        logging.info('Accessed %s ..', request_str_ij)
+        
+        # Connection settings
+        session = requests.Session()
+        retry = Retry(connect=3, backoff_factor=0.5)
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        
+        res_ij = session.get(request_str_ij,  verify=False)
+        # res_ij = requests.get(request_str_ij,  verify=False)
+        
         return res_ij
     
     def process_request(self, request):
