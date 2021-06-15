@@ -246,7 +246,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default="../data/scraping/",
                         help = 'Path where the downloaded data should be stored.')
-    parser.add_argument("--urls_path", type=str, default="../data/scraping/",
+    parser.add_argument("--urls_path", type=str, default="../data/",
                         help = 'Path containing get_request.txt')
     parser.add_argument("--create_progress_df", action="store_true", default=False, 
                         help='Creates a copy of species df that counts downloaded pictures.')
