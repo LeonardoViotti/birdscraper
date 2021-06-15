@@ -59,7 +59,7 @@ class BirdCrawler():
         self.data_path = data_path
         
         # Make sure dir to store results exists
-        self.save_dir = os.path.join(self.data_path + 'pictures')
+        self.save_dir = os.path.join(self.data_path, 'pictures')
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
         
