@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 #--------------------------------------------------------------------
 # Get page with all the species
 
-with open('../data/scraping/all_species_table_url.txt', 'r') as file:
+with open('../data/all_species_table_url.txt', 'r') as file:
     url = file.read()
 
 res = req.get(url)
@@ -83,4 +83,4 @@ for i in missing_index:
 #--------------------------------------------------------------------
 # Export
 if EXPORT_data:
-    data.to_csv("Data/all_species.csv", encoding='utf-8', index=False)
+    data.to_csv("../data/all_species.csv", encoding='utf-8', index=False)
