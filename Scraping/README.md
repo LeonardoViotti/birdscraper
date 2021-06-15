@@ -1,10 +1,11 @@
 To run crawler script:
 
 ```
-python video_processing.py [--data_path]
-                           [--codes]
-                           [--urls_path]
-                           [--overwrite]
+python bird_crawler.py [--data_path]
+                       [--codes]
+                       [--urls_path]
+                       [--overwrite]
+		       [--create_progress_df]
 ```
 
 
