@@ -156,13 +156,18 @@ class BirdCrawler():
             # Add filename column to df
             urls_df['filename'].loc[idx] = global_index
             # Get image
-            response = requests.get(url, stream=True)
-            # Save image to folder
-            save_image_to_file(response, dirname, global_index) # save it to folder
-            # Mark that url as already downloaded
-            urls_df['downloaded'].loc[idx] = 1
-            
-            del response
+            try:
+                response = requests.get(url, stream=True)
+            except requests.exceptions.Timeout:
+                print('Image download timed out!')
+            except requests.exceptions.TooManyRedirects:
+                print('Bad image URL most likely')
+            else:
+                # Save image to folder
+                save_image_to_file(response, dirname, global_index) # save it to folder
+                # Mark that url as already downloaded
+                urls_df['downloaded'].loc[idx] = 1
+                del response
         # Retrun records of what was downloaded
         return urls_df
         
