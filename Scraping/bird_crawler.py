@@ -89,9 +89,8 @@ class BirdCrawler():
         session.mount('http://', adapter)
         session.mount('https://', adapter)
         
+        # Request
         res_ij = session.get(request_str_ij,  verify=False)
-        # res_ij = requests.get(request_str_ij,  verify=False)
-        
         return res_ij
     
     def process_request(self, request):
@@ -198,8 +197,16 @@ class BirdCrawler():
             while len(df_s) < max_pics:
                 print('Sending request for page {0}...'.format(page))
                 # Request pic URLs and process it
-                res = self.http_request(species_code, page)
-                df_si = self.process_request(res)
+                
+                # Try request 
+                try:
+                    res = self.http_request(species_code, page)
+                except requests.exceptions.Timeout:
+                    print('Timed out!')
+                except requests.exceptions.TooManyRedirects:
+                    print('Bad URL most likely')
+                else:
+                    df_si = self.process_request(res)
                 
                 # Stop if page is empty
                 if df_si is None:
@@ -208,21 +215,21 @@ class BirdCrawler():
                 else:
                     print('Page {0} URLs loaded'.format(page))
                     
-                # Download pictures and replace df with anotated version
-                df_si_results = self.download_images(self.current_save_dir, df_si, max_pics, pic_start_idx)
-                
-                # Create all records df
-                df_s = df_s.append(df_si_results)
-                
-                # Save df as a backup
-                df_s.to_csv(os.path.join(self.current_save_dir, 'pics_df.csv'))
-                
-                # Loop parameters
-                pic_start_idx = pic_start_idx + len(df_si)
-                page = page + 1
-                
-                # Wait a random interval before sentind new request
-                sleep(round(random.uniform(.3, 3),3))
+                    # Download pictures and replace df with anotated version
+                    df_si_results = self.download_images(self.current_save_dir, df_si, max_pics, pic_start_idx)
+                    
+                    # Create all records df
+                    df_s = df_s.append(df_si_results)
+                    
+                    # Save df as a backup
+                    df_s.to_csv(os.path.join(self.current_save_dir, 'pics_df.csv'))
+                    
+                    # Loop parameters
+                    pic_start_idx = pic_start_idx + len(df_si)
+                    page = page + 1
+                    
+                    # Wait a random interval before sentind new request
+                    sleep(round(random.uniform(.3, 3),3))
             
             # Anotate all species DF to keep track of what as been downloaded
             self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
