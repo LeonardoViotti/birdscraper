@@ -1,7 +1,6 @@
-# TODO
-#   - Loop over species
-#   - List as CLI argument
-#   - Organize lodading csv and saving progress
+#--------------------------------------------------------------------------------
+
+# Crawler class defintion
 
 #--------------------------------------------------------------------------------
 import os
@@ -19,6 +18,10 @@ import shutil
 import random
 from time import sleep
 import argparse
+
+# Other settings
+pd.options.mode.chained_assignment = None  # default='warn'
+
 
 #--------------------------------------------------------------------------------
 # Set up logging
