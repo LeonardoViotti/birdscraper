@@ -18,10 +18,11 @@ import shutil
 import random
 from time import sleep
 import argparse
+import urllib3
 
 # Other settings
 pd.options.mode.chained_assignment = None  # default='warn'
-
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #--------------------------------------------------------------------------------
 # Set up logging
