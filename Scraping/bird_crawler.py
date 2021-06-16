@@ -161,10 +161,12 @@ class BirdCrawler():
             # Get image
             try:
                 response = requests.get(url, stream=True)
-            except requests.exceptions.Timeout:
-                print('Image download timed out!')
-            except requests.exceptions.TooManyRedirects:
-                print('Bad image URL most likely')
+            except requests.exceptions.Timeout as error:
+	            print("Error: ", error)
+            except requests.exceptions.TooManyRedirects as error:
+	            print("Error: ", error)
+            except requests.exceptions.RequestException as error:
+	            print("Error: ", error)
             else:
                 # Save image to folder
                 save_image_to_file(response, dirname, global_index) # save it to folder
@@ -218,10 +220,12 @@ class BirdCrawler():
                 # Try request 
                 try:
                     res = self.http_request(species_code, page)
-                except requests.exceptions.Timeout:
-                    print('Timed out!')
-                except requests.exceptions.TooManyRedirects:
-                    print('Bad URL most likely')
+                except requests.exceptions.Timeout as error:
+	                print("Error: ", error)
+                except requests.exceptions.TooManyRedirects as error:
+	                print("Error: ", error)
+                except requests.exceptions.RequestException as error:
+	                print("Error: ", error)
                 else:
                     df_si = self.process_request(res)
                 
