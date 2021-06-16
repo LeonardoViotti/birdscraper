@@ -1,7 +1,6 @@
-# TODO
-#   - Loop over species
-#   - List as CLI argument
-#   - Organize lodading csv and saving progress
+#--------------------------------------------------------------------------------
+
+# Crawler class defintion
 
 #--------------------------------------------------------------------------------
 import os
@@ -12,23 +11,30 @@ from datetime import date
 import logging
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import json
 import shutil
 import random
 from time import sleep
 import argparse
+import urllib3
+
+# Other settings
+pd.options.mode.chained_assignment = None  # default='warn'
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 #--------------------------------------------------------------------------------
 # Set up logging
 today = date.today().strftime("%d-%m-%Y")
-logging.basicConfig(filename='logs/crawler-' + today + '.log', 
-                    filemode='w', 
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    # level = logging.DEBUG,
-                    level = logging.INFO)
-# Add handlder to also print on terminal
-logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
+#logging.basicConfig(filename='logs/crawler-' + today + '.log', 
+#                    filemode='w', 
+#                    format='%(asctime)s - %(levelname)s - %(message)s',
+#                    # level = logging.DEBUG,
+#                    level = logging.INFO)
+## Add handlder to also print on terminal
+#logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+#logging.info('Bird Crawler %s', date.today().strftime("%d-%m-%Y"))
 
 #--------------------------------------------------------------------------------
 class BirdCrawler():
@@ -45,7 +51,8 @@ class BirdCrawler():
                  request_base_url,
                  create_progress_df = False,
                  data_path = '../data/scraping/',
-                 species_org_csv_path = '../data/scraping/all_species.csv'):
+                 species_org_csv_path = '../data/scraping/all_species.csv',
+                 pic_limit = None):
         """
         Parameters
         ----------
@@ -55,11 +62,12 @@ class BirdCrawler():
         species_org_csv_path : Path to csv file containg all species codes and number of pics created by all_species.py
         """
         
-        self.request_base_url = request_base_url        
+        self.request_base_url = request_base_url
         self.data_path = data_path
+        self.pic_limit = pic_limit
         
         # Make sure dir to store results exists
-        self.save_dir = os.path.join(self.data_path + 'pictures')
+        self.save_dir = os.path.join(self.data_path, 'pictures')
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
         
@@ -78,10 +86,17 @@ class BirdCrawler():
         Sends an hhtp request to get a JSON response that cotains pic links
         """
         request_str = self.request_base_url
-        
         request_str_ij = request_str.format(code = code, page = page)
-        res_ij = requests.get(request_str_ij,  verify=False)
-        logging.info('Accessed %s ..', request_str_ij)
+        
+        # Connection settings
+        session = requests.Session()
+        retry = Retry(connect=5, backoff_factor=0.5)
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        
+        # Request
+        res_ij = session.get(request_str_ij,  verify=False)
         return res_ij
     
     def process_request(self, request):
@@ -144,13 +159,18 @@ class BirdCrawler():
             # Add filename column to df
             urls_df['filename'].loc[idx] = global_index
             # Get image
-            response = requests.get(url, stream=True)
-            # Save image to folder
-            save_image_to_file(response, dirname, global_index) # save it to folder
-            # Mark that url as already downloaded
-            urls_df['downloaded'].loc[idx] = 1
-            
-            del response
+            try:
+                response = requests.get(url, stream=True)
+            except requests.exceptions.Timeout:
+                print('Image download timed out!')
+            except requests.exceptions.TooManyRedirects:
+                print('Bad image URL most likely')
+            else:
+                # Save image to folder
+                save_image_to_file(response, dirname, global_index) # save it to folder
+                # Mark that url as already downloaded
+                urls_df['downloaded'].loc[idx] = 1
+                del response
         # Retrun records of what was downloaded
         return urls_df
         
@@ -185,11 +205,25 @@ class BirdCrawler():
             pic_start_idx = 0
             page = 1
             
-            while len(df_s) < max_pics:
+            # Limit number of pictures downloaded
+            if self.pic_limit is None:
+                limit = max_pics
+            else:
+                limit = self.pic_limit
+            
+            while len(df_s) < limit:
                 print('Sending request for page {0}...'.format(page))
                 # Request pic URLs and process it
-                res = self.http_request(species_code, page)
-                df_si = self.process_request(res)
+                
+                # Try request 
+                try:
+                    res = self.http_request(species_code, page)
+                except requests.exceptions.Timeout:
+                    print('Timed out!')
+                except requests.exceptions.TooManyRedirects:
+                    print('Bad URL most likely')
+                else:
+                    df_si = self.process_request(res)
                 
                 # Stop if page is empty
                 if df_si is None:
@@ -198,21 +232,21 @@ class BirdCrawler():
                 else:
                     print('Page {0} URLs loaded'.format(page))
                     
-                # Download pictures and replace df with anotated version
-                df_si_results = self.download_images(self.current_save_dir, df_si, max_pics, pic_start_idx)
-                
-                # Create all records df
-                df_s = df_s.append(df_si_results)
-                
-                # Save df as a backup
-                df_s.to_csv(os.path.join(self.current_save_dir, 'pics_df.csv'))
-                
-                # Loop parameters
-                pic_start_idx = pic_start_idx + len(df_si)
-                page = page + 1
-                
-                # Wait a random interval before sentind new request
-                sleep(round(random.uniform(.3, 3),3))
+                    # Download pictures and replace df with anotated version
+                    df_si_results = self.download_images(self.current_save_dir, df_si, max_pics, pic_start_idx)
+                    
+                    # Create all records df
+                    df_s = df_s.append(df_si_results)
+                    
+                    # Save df as a backup
+                    df_s.to_csv(os.path.join(self.current_save_dir, 'pics_df.csv'))
+                    
+                    # Loop parameters
+                    pic_start_idx = pic_start_idx + len(df_si)
+                    page = page + 1
+                    
+                    # Wait a random interval before sentind new request
+                    sleep(round(random.uniform(.3, 3),3))
             
             # Anotate all species DF to keep track of what as been downloaded
             self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
@@ -246,7 +280,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default="../data/scraping/",
                         help = 'Path where the downloaded data should be stored.')
-    parser.add_argument("--urls_path", type=str, default="../data/scraping/",
+    parser.add_argument("--urls_path", type=str, default="../data/",
                         help = 'Path containing get_request.txt')
     parser.add_argument("--create_progress_df", action="store_true", default=False, 
                         help='Creates a copy of species df that counts downloaded pictures.')
@@ -254,6 +288,8 @@ def parse_args():
                         help = 'Numeric codes to request pictures.')
     parser.add_argument("--overwrite", action="store_true", default=False, 
                         help='Overwrite pictures downloaded with new ones.')
+    parser.add_argument("--limit", type=int,
+                        help='Limit number of pictures downloaded. Has to be a multiple of 20.')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -261,14 +297,15 @@ if __name__ == "__main__":
     try:
         with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
             REQUEST_URL = file.read()
-    except IOError:    #This means that the file does not exist (or some other IOError)
+    except SystemExit:
         print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
     
     # Instantiate crawler
     crawl = BirdCrawler(REQUEST_URL,
                         create_progress_df = args.create_progress_df,
                         data_path= args.data_path,
-                        species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'))
+                        species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'),
+                        pic_limit = args.limit)
     print('Crawler started!')
     
     # Download pictures of codes provided:
@@ -276,6 +313,8 @@ if __name__ == "__main__":
         print('No --codes argument provided. Nothing is downloaded.')
     else:
         crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
+    
+    # print(args.limit)
 
 
 # with open(os.path.join("../data/scraping/get_request.txt"), 'r') as file:
