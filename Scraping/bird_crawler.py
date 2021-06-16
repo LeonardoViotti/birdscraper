@@ -51,7 +51,8 @@ class BirdCrawler():
                  request_base_url,
                  create_progress_df = False,
                  data_path = '../data/scraping/',
-                 species_org_csv_path = '../data/scraping/all_species.csv'):
+                 species_org_csv_path = '../data/scraping/all_species.csv',
+                 pic_limit = None):
         """
         Parameters
         ----------
@@ -61,8 +62,9 @@ class BirdCrawler():
         species_org_csv_path : Path to csv file containg all species codes and number of pics created by all_species.py
         """
         
-        self.request_base_url = request_base_url        
+        self.request_base_url = request_base_url
         self.data_path = data_path
+        self.pic_limit = pic_limit
         
         # Make sure dir to store results exists
         self.save_dir = os.path.join(self.data_path, 'pictures')
@@ -203,7 +205,13 @@ class BirdCrawler():
             pic_start_idx = 0
             page = 1
             
-            while len(df_s) < max_pics:
+            # Limit number of pictures downloaded
+            if self.pic_limit is None:
+                limit = max_pics
+            else:
+                limit = self.pic_limit
+            
+            while len(df_s) < limit:
                 print('Sending request for page {0}...'.format(page))
                 # Request pic URLs and process it
                 
@@ -280,6 +288,8 @@ def parse_args():
                         help = 'Numeric codes to request pictures.')
     parser.add_argument("--overwrite", action="store_true", default=False, 
                         help='Overwrite pictures downloaded with new ones.')
+    parser.add_argument("--limit", type=int,
+                        help='Limit number of pictures downloaded. Has to be a multiple of 20.')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -294,7 +304,8 @@ if __name__ == "__main__":
     crawl = BirdCrawler(REQUEST_URL,
                         create_progress_df = args.create_progress_df,
                         data_path= args.data_path,
-                        species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'))
+                        species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'),
+                        pic_limit = args.limit)
     print('Crawler started!')
     
     # Download pictures of codes provided:
@@ -302,6 +313,8 @@ if __name__ == "__main__":
         print('No --codes argument provided. Nothing is downloaded.')
     else:
         crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
+    
+    # print(args.limit)
 
 
 # with open(os.path.join("../data/scraping/get_request.txt"), 'r') as file:
