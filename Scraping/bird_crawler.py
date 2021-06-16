@@ -214,7 +214,7 @@ class BirdCrawler():
                 limit = self.pic_limit
             
             while len(df_s) < limit:
-                print('Sending request for page {0}...'.format(page))
+                print('Sending request for page {0} of species {1}...'.format(page, species_code))
                 # Request pic URLs and process it
                 
                 # Try request 
@@ -258,7 +258,7 @@ class BirdCrawler():
             # Replace existing file with anotaded version
             progress_df_path = os.path.join(self.save_dir, 'all_species_progress.csv')
             self.species_df.to_csv(progress_df_path, index = False)
-            print('Updating {}',format(progress_df_path))
+            print('Updating {0}'.format(progress_df_path))
         
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
