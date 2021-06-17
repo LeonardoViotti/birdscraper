@@ -52,6 +52,7 @@ class BirdCrawler():
                  create_progress_df = False,
                  data_path = '../data/scraping/',
                  species_org_csv_path = '../data/scraping/all_species.csv',
+                 random_codes = None,
                  pic_limit = None):
         """
         Parameters
@@ -64,6 +65,7 @@ class BirdCrawler():
         
         self.request_base_url = request_base_url
         self.data_path = data_path
+        self.random_codes = random_codes
         self.pic_limit = pic_limit
         
         # Make sure dir to store results exists
@@ -71,6 +73,7 @@ class BirdCrawler():
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
         
+        # If specified create csv with progress for all species
         if create_progress_df:
             self.species_df = pd.read_csv(species_org_csv_path)
             self.create_progress_df()
@@ -276,6 +279,10 @@ class BirdCrawler():
             else:
                 print('Trying to download pictures for {} code {}...'.format(species_name.capitalize(), code))
                 self.request_n_download(code, replace = overwrite)
+    def download_random(self, n_of_codes):
+        codes_list = self.species_df[self.species_df['downloaded'] == 0].sample(n_of_codes)['code'].to_list()
+        return codes_list
+
 
 #--------------------------------------------------------------------------------
 # Run BirdCrawler!
@@ -292,6 +299,8 @@ def parse_args():
                         help = 'Numeric codes to request pictures.')
     parser.add_argument("--overwrite", action="store_true", default=False, 
                         help='Overwrite pictures downloaded with new ones.')
+    parser.add_argument("--random_codes", type=int,
+                        help='Number of random codes to download.')
     parser.add_argument("--limit", type=int,
                         help='Limit number of pictures downloaded. Has to be a multiple of 20.')
     return parser.parse_args()
@@ -309,14 +318,20 @@ if __name__ == "__main__":
                         create_progress_df = args.create_progress_df,
                         data_path= args.data_path,
                         species_org_csv_path = os.path.join(args.data_path, 'all_species.csv'),
+                        random_codes = args.random_codes,
                         pic_limit = args.limit)
     print('Crawler started!')
     
-    # Download pictures of codes provided:
-    if args.codes is None:
+    # Download pictures of codes provided or download random codes:
+    if (args.codes is None) & (args.random_codes is None):
         print('No --codes argument provided. Nothing is downloaded.')
     else:
-        crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
+        if args.random_codes is None:
+            crawl.download_species_images(codes_list=args.codes, overwrite=args.overwrite)
+        else:
+            print('Downloading {0} random codes.'.format(args.random_codes))
+            codes_list = crawl.download_random(args.random_codes)
+            crawl.download_species_images(codes_list=codes_list, overwrite=args.overwrite)
     
     # print(args.limit)
 
