@@ -252,17 +252,16 @@ class BirdCrawler():
                     pic_start_idx = pic_start_idx + len(df_si)
                     page = page + 1
                     
+                    # Anotate all species DF to keep track of what as been downloaded
+                    self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
+                    
+                    # Replace existing file with anotaded version
+                    progress_df_path = os.path.join(self.save_dir, 'all_species_progress.csv')
+                    self.species_df.to_csv(progress_df_path, index = False)
+                    print('Updating {0}'.format(progress_df_path))
+                                        
                     # Wait a random interval before sentind new request
                     sleep(round(random.uniform(.3, 3),3))
-            
-            # Anotate all species DF to keep track of what as been downloaded
-            self.species_df['downloaded'].loc[self.species_df['code'] == species_code] = len(df_s)
-            
-            # Replace existing file with anotaded version
-            progress_df_path = os.path.join(self.save_dir, 'all_species_progress.csv')
-            self.species_df.to_csv(progress_df_path, index = False)
-            print('Updating {0}'.format(progress_df_path))
-        
         else:
             print('Species already downloaded. Skipping {0}...'.format(species_code))
         
