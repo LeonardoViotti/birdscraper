@@ -220,6 +220,9 @@ class BirdCrawler():
                 print('Sending request for page {0} of species {1}...'.format(page, species_code))
                 # Request pic URLs and process it
                 
+                # Make sure to remove from memory previous iteration
+                df_si = None
+                
                 # Try request 
                 try:
                     res = self.http_request(species_code, page)
