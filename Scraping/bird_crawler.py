@@ -222,6 +222,7 @@ class BirdCrawler():
                 
                 # Make sure to remove from memory previous iteration
                 df_si = None
+                res = None
                 
                 # Try request 
                 try:
