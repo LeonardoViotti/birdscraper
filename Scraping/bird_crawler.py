@@ -51,7 +51,7 @@ class BirdCrawler():
                  request_base_url,
                  create_progress_df = False,
                  data_path = '../data/scraping/',
-                 species_org_csv_path = '../data/scraping/all_species.csv',
+                 species_org_csv_path = './all_species.csv',
                  random_codes = None,
                  pic_limit = None):
         """
@@ -227,14 +227,13 @@ class BirdCrawler():
                 # Try request 
                 try:
                     res = self.http_request(species_code, page)
+                    df_si = self.process_request(res)
                 except requests.exceptions.Timeout as error:
 	                print("Error: ", error)
                 except requests.exceptions.TooManyRedirects as error:
 	                print("Error: ", error)
                 except requests.exceptions.RequestException as error:
 	                print("Error: ", error)
-                else:
-                    df_si = self.process_request(res)
                 
                 # Stop if page is empty
                 if df_si is None:
@@ -285,6 +284,9 @@ class BirdCrawler():
     def download_random(self, n_of_codes):
         codes_list = self.species_df[self.species_df['downloaded'] == 0].sample(n_of_codes)['code'].to_list()
         return codes_list
+    
+    def reconcile_progress_df(slef):
+        pass
 
 
 #--------------------------------------------------------------------------------
@@ -292,7 +294,7 @@ class BirdCrawler():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="../data/scraping/",
+    parser.add_argument("--data_path", type=str, default="./",
                         help = 'Path where the downloaded data should be stored.')
     parser.add_argument("--urls_path", type=str, default="../data/",
                         help = 'Path containing get_request.txt')
@@ -306,12 +308,17 @@ def parse_args():
                         help='Number of random codes to download.')
     parser.add_argument("--limit", type=int,
                         help='Limit number of pictures downloaded. Has to be a multiple of 20.')
+    parser.add_argument("--parallel", type=int, default=0,
+                        help='Index of parallel process. This creates a copy of progress csv. Default is zero and does not create a copy of table.')
+    parser.add_argument("--reconcile_data", action="store_true", default=False, 
+                        help='Combine multiple progress csvs into a single file.')
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
     try:
-        with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
+        # with open(os.path.join(args.urls_path, 'get_request.txt'), 'r') as file:
+        with open('./get_request.txt', 'r') as file:
             REQUEST_URL = file.read()
     except SystemExit:
         print("get_request.txt file not found! Make sure it is on the file specifiec in --urls_path.")
@@ -335,13 +342,10 @@ if __name__ == "__main__":
             print('Downloading {0} random codes.'.format(args.random_codes))
             codes_list = crawl.download_random(args.random_codes)
             crawl.download_species_images(codes_list=codes_list, overwrite=args.overwrite)
-    
-    # print(args.limit)
-
 
 # with open(os.path.join("../data/scraping/get_request.txt"), 'r') as file:
 #     REQUEST_URL = file.read()
 
-# crawl = BirdCrawler(REQUEST_URL)
+# crawl = BirdCrawler(REQUEST_URL, pic_limit = 100)
 
 # crawl.species_df
