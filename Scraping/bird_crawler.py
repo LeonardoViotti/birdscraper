@@ -214,7 +214,7 @@ class BirdCrawler():
             if self.pic_limit is None:
                 limit = max_pics
             else:
-                limit = self.pic_limit
+                limit = np.min(self.pic_limit, max_pics)
             
             while len(df_s) < limit:
                 print('Sending request for page {0} of species {1}...'.format(page, species_code))
