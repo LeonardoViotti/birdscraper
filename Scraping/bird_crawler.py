@@ -10,6 +10,7 @@ from datetime import date
 
 import logging
 import pandas as pd
+import numpy as np
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
