@@ -43,6 +43,7 @@ _config.yml
 
 # Python
 !/**/*.py
+!/**/*.ipynb
 
 # C++
 !/**/*.cpp
