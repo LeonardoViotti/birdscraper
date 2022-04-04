@@ -18,6 +18,12 @@ _config.yml
 !CONTRIBUTING.md
 !LICENSE
 
+
+#######################
+# Ignore entire folders
+
+*/.ipynb_checkpoints/*
+
 #######################
 # For performance reasons, if a folder is already ignored, then
 # GitHub does not check the content for that folder for matches
@@ -43,6 +49,7 @@ _config.yml
 
 # Python
 !/**/*.py
+!/**/*.ipynb
 
 # C++
 !/**/*.cpp
