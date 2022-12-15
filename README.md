@@ -1,4 +1,4 @@
-# Webscraping bird pictures
+# Web scraping bird pictures
 
 First, to build the container from Dockerfile run:
 
