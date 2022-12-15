@@ -1,15 +1,10 @@
-First, build the container from Dockerfile:
+# Webscraping bird pictures
+
+First, to build the container from Dockerfile run:
 
 ```
 docker build -t crawler .
 ```
-
-Copy the script to the location (GAMBIARRA)
-
-```
-cp ./bird_crawler.py /my/data/path/
-```
-
 
 To download specific codes limiting the max. of pictures downloaded:
 
