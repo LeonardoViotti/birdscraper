@@ -1,6 +1,26 @@
 # Web scraping bird pictures and audio
 
-This repository contains code use to scrape image and audio recordings of birds.
+This repository contains code use to scrape image and audio recordings of birds. This is not meant to be used as a general purpose scraper.
+
+## Requirements:
+
+
+## Usage:
+
+There are two necessary inputs:
+- A URL for the reference sheet listing all species.
+- A base request URL to download media for species.
+
+### Download reference sheet
+
+```
+python download_ref_sheet.py path/to/data/dir
+```
+
+### Download audio
+
+### Download pictures
+
 
 ## Docker usage:
 
