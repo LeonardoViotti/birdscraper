@@ -1,4 +1,8 @@
-# Web scraping bird pictures
+# Web scraping bird pictures and audio
+
+This repository contains code use to scrape image and audio recordings of birds.
+
+## Docker usage:
 
 First, to build the container from Dockerfile run:
 
